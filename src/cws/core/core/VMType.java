@@ -2,11 +2,15 @@ package cws.core.core;
 
 import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
 
+import cws.core.core.power.PowerModel;
+import cws.core.core.power.StaticPowerModel;
+
 public class VMType implements Cloneable {
     /**
-     * The processing power of this VM
+     * The relationship between processing power (mips) and electrical power
+     * consumed for this VM
      */
-    private final double mips;
+    private final PowerModel powerModel;
 
     /**
      * The number of cores of this VM
@@ -40,7 +44,7 @@ public class VMType implements Cloneable {
     private final long cacheSize;
 
     public double getMips() {
-        return mips;
+        return powerModel.getCurrentState().mips;
     }
 
     public int getCores() {
@@ -67,9 +71,24 @@ public class VMType implements Cloneable {
         return cacheSize;
     }
 
-    public VMType(double mips, int cores, double billingUnitPrice, double billingTimeInSeconds,
-            ContinuousDistribution provisioningTime, ContinuousDistribution deprovisioningTime, long cacheSize) {
-        this.mips = mips;
+    public VMType(double mips, int cores,
+                  double billingUnitPrice, double billingTimeInSeconds,
+                  ContinuousDistribution provisioningTime,
+                  ContinuousDistribution deprovisioningTime, long cacheSize) {
+        this.powerModel = new StaticPowerModel(0.0, mips);
+        this.cores = cores;
+        this.billingUnitPrice = billingUnitPrice;
+        this.billingTimeInSeconds = billingTimeInSeconds;
+        this.provisioningDelay = provisioningTime;
+        this.deprovisioningDelay = deprovisioningTime;
+        this.cacheSize = cacheSize;
+    }
+
+    public VMType(PowerModel powerModel, int cores,
+                  double billingUnitPrice, double billingTimeInSeconds,
+                  ContinuousDistribution provisioningTime,
+                  ContinuousDistribution deprovisioningTime, long cacheSize) {
+        this.powerModel = powerModel;
         this.cores = cores;
         this.billingUnitPrice = billingUnitPrice;
         this.billingTimeInSeconds = billingTimeInSeconds;
