@@ -51,14 +51,11 @@ public class Plan {
         }
     }
 
-    private static int nextresourceid = 0;
-
     /** Class to group a vmtype (which will be created by the Algorithm
      * class when the plan is executed) with a schedule for the tasks
      * assigned to that VM.
      */
     public static class Resource {
-        int id = nextresourceid++;
 
         public VMType vmtype;
 
