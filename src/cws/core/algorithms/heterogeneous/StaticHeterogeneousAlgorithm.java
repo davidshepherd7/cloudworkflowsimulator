@@ -41,7 +41,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm implements VMListener, JobListener, Scheduler {
 
     // Changes from StaticAlgorithm:
-    
+
     // We don't inherit from Provisioner. It's simpler and clearer to use a
     // NullProvisioner instead in my opinion.
 
@@ -90,7 +90,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
             Planner planner, List<VMType> availableVMTypes,
             CloudSimWrapper cloudsim) {
         super(budget, deadline, dags, ensembleStatistics, cloudsim);
-        
+
         this.availableVMTypes = availableVMTypes;
         this.planner = planner;
     }
@@ -171,7 +171,16 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
      * Develop a plan for a single DAG
      */
     Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
-        return this.planner.planDAG(dag, availableVMTypes); 
+
+        // Error checks
+        if(availableVMTypes.size() == 0) {
+            throw new RuntimeException("No VMTypes given");
+        }
+        if(dag.getTasks().length == 0) {
+            throw new RuntimeException("No tasks in dag");
+        }
+
+        return this.planner.planDAG(dag, availableVMTypes);
     }
 
     private void submitDAG(DAG dag) {
