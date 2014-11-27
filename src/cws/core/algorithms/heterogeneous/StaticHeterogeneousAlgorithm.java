@@ -21,7 +21,6 @@ import cws.core.core.VMTypeBuilder;
 import cws.core.dag.DAG;
 import cws.core.dag.DAGJob;
 import cws.core.dag.Task;
-import cws.core.dag.algorithms.TopologicalOrder;
 import cws.core.jobs.Job;
 import cws.core.jobs.Job.Result;
 import cws.core.jobs.JobListener;
@@ -42,7 +41,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm implements VMListener, JobListener, Scheduler {
 
     // Changes from StaticAlgorithm:
-
+    
     // We don't inherit from Provisioner. It's simpler and clearer to use a
     // NullProvisioner instead in my opinion.
 
@@ -50,6 +49,9 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     // WorkflowEngine, and EnsembleManager from prepareEnvironment(). This
     // should really be done externally (and doing it externally should
     // help make the code more testable and flexible).
+
+    // Planning is delegated to a Planner object, this makes
+    // it *much* easier to test the planning algorithm.
 
     // I'm not going to handle ensembles of dags just yet (it would
     // make the planning a little more complex).
@@ -76,10 +78,21 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /** Set of idle VMs */
     private final HashSet<VM> idleVms = new HashSet<VM>();
 
+    /** The VM types which can be created */
+    private final List<VMType> availableVMTypes;
+
+    /** The class responsible for creating the plan */
+    private Planner planner;
+
+
     public StaticHeterogeneousAlgorithm(double budget, double deadline,
             List<DAG> dags, AlgorithmStatistics ensembleStatistics,
+            Planner planner, List<VMType> availableVMTypes,
             CloudSimWrapper cloudsim) {
         super(budget, deadline, dags, ensembleStatistics, cloudsim);
+        
+        this.availableVMTypes = availableVMTypes;
+        this.planner = planner;
     }
 
     /** Store planning time taken in nanos */
@@ -101,7 +114,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
      */
     public void plan() {
 
-        if(getAllDags.size() > 1) {
+        if(this.getAllDags().size() > 1) {
             throw new RuntimeException("Can only handle single DAGs");
         }
 
@@ -110,7 +123,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         for (DAG dag : getAllDags()) {
             try {
                 // Create the plan
-                Plan newPlan = planDAG(dag, plan);
+                Plan newPlan = planDAG(dag, this.availableVMTypes);
 
                 // Plan was feasible, accept it
                 if (newPlan.getCost() <= getBudget()) {
@@ -157,36 +170,8 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /**
      * Develop a plan for a single DAG
      */
-    Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
-
-        // Create our one and only VM
-        VMType vmType = VMTypeBuilder.newBuilder().mips(20.0).cores(1).price(1).build();
-        Resource r = new Resource(vmType);
-
-        // Tasks must run in a topological order to ensure that parent
-        // tasks are always completed before their children.
-        TopologicalOrder order = new TopologicalOrder(dag);
-
-        // Assign tasks to the single VM in the topological order, store
-        // assignments in a Plan class.
-        Plan plan = new Plan();
-        double previous_finish_time = 0.0;
-        for(Task t : order) {
-
-            // Compute times
-            final double duration = vmType.getPredictedTaskRuntime(t);
-            final double start = previous_finish_time; // no storage stuff yet I guess
-
-            // Construct Solution class and add to plan
-            Slot slot = new Slot(t, start, duration);
-            Solution sol = new Solution(r, slot, 10, true);
-            sol.addToPlan(plan);
-
-            // Update
-            previous_finish_time += duration;
-        }
-
-        return plan;
+    Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
+        return this.planner.planDAG(dag, availableVMTypes); 
     }
 
     private void submitDAG(DAG dag) {
