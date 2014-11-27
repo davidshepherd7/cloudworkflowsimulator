@@ -8,6 +8,11 @@ import cws.core.dag.Task;
 import cws.core.dag.algorithms.TopologicalOrder;
 import cws.core.engine.Environment;
 
+import cws.core.algorithms.Plan.Solution;
+import cws.core.algorithms.Plan.Resource;
+import cws.core.algorithms.Plan.Slot;
+import cws.core.algorithms.Plan.NoFeasiblePlan;
+
 /**
  * @author Gideon Juve <juve@usc.edu>
  */
@@ -90,7 +95,7 @@ public class SPSS extends StaticAlgorithm {
             Solution best;
             {
                 // Default is to allocate a new resource
-                Resource r = new Resource(getEnvironment());
+                Resource r = new Resource(getEnvironment().getVMType());
                 double cost = r.getCostWith(earliestStart, earliestStart + runtime);
                 Slot sl = new Slot(task, earliestStart, runtime);
                 best = newResource = new Solution(r, sl, cost, true);

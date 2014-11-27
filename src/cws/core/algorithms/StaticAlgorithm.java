@@ -29,6 +29,11 @@ import cws.core.jobs.Job;
 import cws.core.jobs.Job.Result;
 import cws.core.jobs.JobListener;
 
+import cws.core.algorithms.Plan.Solution;
+import cws.core.algorithms.Plan.Resource;
+import cws.core.algorithms.Plan.Slot;
+import cws.core.algorithms.Plan.NoFeasiblePlan;
+
 public abstract class StaticAlgorithm extends HomogeneousAlgorithm implements Provisioner, Scheduler, VMListener, JobListener {
     /** Plan */
     private Plan plan = new Plan();
@@ -397,167 +402,5 @@ public abstract class StaticAlgorithm extends HomogeneousAlgorithm implements Pr
      */
     protected double getPredictedTaskRuntime(Task task) {
         return getEnvironment().getComputationPredictedRuntime(task);
-    }
-
-    class Slot {
-        Task task;
-        double start;
-        double duration;
-
-        public Slot(Task task, double start, double duration) {
-            this.task = task;
-            this.start = start;
-            this.duration = duration;
-        }
-    }
-
-    private static int nextresourceid = 0;
-
-    class Resource {
-        int id = nextresourceid++;
-        Environment environment;
-        TreeMap<Double, Slot> schedule;
-
-        public Resource(Resource other) {
-            this(other.environment);
-            for (Double s : other.schedule.navigableKeySet()) {
-                schedule.put(s, other.schedule.get(s));
-            }
-        }
-
-        public Resource(Environment environment) {
-            this.environment = environment;
-            this.schedule = new TreeMap<Double, Slot>();
-        }
-
-        public SortedSet<Double> getStartTimes() {
-            return schedule.navigableKeySet();
-        }
-
-        public double getStart() {
-            if (schedule.size() == 0) {
-                return 0.0;
-            }
-            return schedule.firstKey();
-        }
-
-        public double getEnd() {
-            if (schedule.size() == 0) {
-                return 0.0;
-            }
-            double last = schedule.lastKey();
-            Slot lastSlot = schedule.get(last);
-            return last + lastSlot.duration + environment.getDeprovisioningDelayEstimation();
-        }
-
-        public int getFullBillingUnits() {
-            return getFullBillingUnitsWith(getStart(), getEnd());
-        }
-
-        public int getFullBillingUnitsWith(double start, double end) {
-            double seconds = end - start;
-            double units = seconds / environment.getBillingTimeInSeconds();
-            int rounded = (int) Math.ceil(units);
-            return Math.max(1, rounded);
-        }
-
-        public double getCostWith(double start, double end) {
-            return environment.getVMCostFor(end - start);
-        }
-
-        public double getCost() {
-            return getCostWith(getStart(), getEnd());
-        }
-
-        public double getUtilization() {
-            double runtime = 0.0;
-            for (Slot sl : schedule.values()) {
-                runtime += sl.duration;
-            }
-            return runtime / (getFullBillingUnits() * environment.getBillingTimeInSeconds());
-        }
-    }
-
-    class Solution {
-        double cost;
-        Resource resource;
-        Slot slot;
-        boolean newresource;
-
-        public Solution(Resource resource, Slot slot, double cost, boolean newresource) {
-            this.resource = resource;
-            this.slot = slot;
-            this.cost = cost;
-            this.newresource = newresource;
-        }
-
-        public boolean betterThan(Solution other) {
-            // A solution is better than no solution
-            if (other == null) {
-                return true;
-            }
-
-            // Cheaper solutions are better
-            if (this.cost < other.cost) {
-                return true;
-            }
-            if (this.cost > other.cost) {
-                return false;
-            }
-
-            // Existing resources are better
-            if (!this.newresource && other.newresource) {
-                return true;
-            }
-            if (this.newresource && !other.newresource) {
-                return false;
-            }
-
-            // Earlier starts are better
-            if (this.slot.start < other.slot.start) {
-                return true;
-            }
-            if (this.slot.start > other.slot.start) {
-                return false;
-            }
-
-            return true;
-        }
-
-        public void addToPlan(Plan p) {
-            resource.schedule.put(slot.start, slot);
-            p.resources.add(resource);
-        }
-    }
-
-    class Plan {
-        LinkedHashSet<Resource> resources;
-
-        public Plan() {
-            this.resources = new LinkedHashSet<Resource>();
-        }
-
-        public Plan(Plan other) {
-            this.resources = new LinkedHashSet<Resource>();
-            for (Resource r : other.resources) {
-                this.resources.add(new Resource(r));
-            }
-        }
-
-        public double getCost() {
-            double cost = 0.0;
-            for (Resource r : resources) {
-                cost += r.getCost();
-            }
-            return cost;
-        }
-    }
-
-    class NoFeasiblePlan extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        public NoFeasiblePlan(String msg) {
-            super(msg);
-        }
     }
 }
