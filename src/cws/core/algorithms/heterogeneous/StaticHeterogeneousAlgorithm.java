@@ -65,18 +65,18 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /** Set of idle VMs */
     private final HashSet<VM> idleVms = new HashSet<VM>();
 
-    private long planningStartWallTime;
-    private long planningFinishWallTime;
-
     public StaticHeterogeneousAlgorithm(double budget, double deadline,
             List<DAG> dags, AlgorithmStatistics ensembleStatistics,
             CloudSimWrapper cloudsim) {
         super(budget, deadline, dags, ensembleStatistics, cloudsim);
     }
 
+    /** Store planning time taken in nanos */
+    private Long planningTime = null;
+
     @Override
     public long getPlanningnWallTime() {
-        return planningFinishWallTime - planningStartWallTime;
+        return planningTime;
     }
 
     /**
@@ -292,11 +292,12 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     public void simulateInternal() {
         prepareEnvironment();
 
-        planningStartWallTime = System.nanoTime();
+        final long planningStartWallTime = System.nanoTime();
 
         plan();
 
-        planningFinishWallTime = System.nanoTime();
+        final long planningFinishWallTime = System.nanoTime();
+        planningTime = planningFinishWallTime - planningStartWallTime ;
 
         getCloudsim().startSimulation();
     }
