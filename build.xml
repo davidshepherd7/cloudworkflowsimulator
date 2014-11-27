@@ -166,7 +166,8 @@
   <!-- Run all tests -->
   <target name="test" depends="test-java,test-python" description="build and run all tests" />
 
-  <!-- Run a single test -->
+  <!-- Run a single test when combined with -Dttr=TestClass, for example
+       `ant runtest -Dttr=StaticHeterogeneousAlgorithmTest`. -->
   <target name="runtest" description="Runs the test you specify on the command line with -Dtest="
           depends="compile, test-build, ensure-test-name">
     <junit printsummary="withOutAndErr" fork="yes">
