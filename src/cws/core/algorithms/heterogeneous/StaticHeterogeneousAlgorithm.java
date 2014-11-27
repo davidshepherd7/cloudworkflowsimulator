@@ -86,6 +86,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         return planningTime;
     }
 
+
+    // The following methods are used before the simulation starts to
+    // create a plan/schedule.
+    // ============================================================
+
     /**
      * Develop a plan for running as many DAGs as we can from the list of
      * DAGs provided to the constructor.
@@ -176,13 +181,57 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     }
 
     private void submitDAG(DAG dag) {
-        List<DAG> dags = getAllDags();
-        int priority = dags.indexOf(dag);
+        // Wrap into a job which also stores owner ID
         DAGJob dagJob = new DAGJob(dag, getEnsembleManager().getId());
-        dagJob.setPriority(priority);
-        getCloudsim().send(getEnsembleManager().getId(), getWorkflowEngine().getId(), 0.0, WorkflowEvent.DAG_SUBMIT,
-                dagJob);
+
+        // Priority is based on order of input list
+        dagJob.setPriority(getAllDags().indexOf(dag));
+
+        // Submit the dag
+        getCloudsim().send(getEnsembleManager().getId(),
+                getWorkflowEngine().getId(),
+                0.0, WorkflowEvent.DAG_SUBMIT, dagJob);
     }
+
+
+    private void launchVM(VM vm, double start) {
+        double now = getCloudsim().clock();
+        double delay = start - now;
+        getCloudsim().send(getWorkflowEngine().getId(), getCloud().getId(),
+                delay, WorkflowEvent.VM_LAUNCH, vm);
+    }
+
+
+    // These methods handle running the actual simulation
+    // ============================================================
+
+    @Override
+    public void simulateInternal() {
+        prepareEnvironment();
+
+        final long planningStartWallTime = System.nanoTime();
+
+        plan();
+
+        final long planningFinishWallTime = System.nanoTime();
+        planningTime = planningFinishWallTime - planningStartWallTime ;
+
+        getCloudsim().startSimulation();
+    }
+
+    private void prepareEnvironment() {
+        this.getCloud().addVMListener(this);
+        this.getWorkflowEngine().addJobListener(this);
+    }
+
+
+
+    // The following methods control the behaviour while the simulation is
+    // running. They are called through the VMListener and JobListener
+    // interfaces and are used to automatically send jobs to the
+    // appropriate VMs based on the plan.
+    // ============================================================
+
 
     @Override
     public void scheduleJobs(WorkflowEngine engine) {
@@ -267,12 +316,6 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         }
     }
 
-    private void launchVM(VM vm, double start) {
-        double now = getCloudsim().clock();
-        double delay = start - now;
-        getCloudsim().send(getWorkflowEngine().getId(), getCloud().getId(), delay, WorkflowEvent.VM_LAUNCH, vm);
-    }
-
     private void submitJob(VM vm, Job job) {
         Task task = job.getTask();
 
@@ -293,24 +336,5 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         idleVms.remove(vm);
         job.setVM(vm);
         vm.jobSubmit(job);
-    }
-
-    @Override
-    public void simulateInternal() {
-        prepareEnvironment();
-
-        final long planningStartWallTime = System.nanoTime();
-
-        plan();
-
-        final long planningFinishWallTime = System.nanoTime();
-        planningTime = planningFinishWallTime - planningStartWallTime ;
-
-        getCloudsim().startSimulation();
-    }
-
-    private void prepareEnvironment() {
-        this.getCloud().addVMListener(this);
-        this.getWorkflowEngine().addJobListener(this);
     }
 }
