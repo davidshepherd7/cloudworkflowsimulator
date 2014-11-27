@@ -41,14 +41,18 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
  */
 public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm implements VMListener, JobListener, Scheduler {
 
-    // Note that, unlike in StaticAlgorithm, we don't inherit from
-    // Provisioner. It's simpler and clearer to use a NullProvisioner
-    // instead in my opinion.
+    // Changes from StaticAlgorithm:
+
+    // We don't inherit from Provisioner. It's simpler and clearer to use a
+    // NullProvisioner instead in my opinion.
 
     // Also I've decided to remove the construction of the Cloud,
     // WorkflowEngine, and EnsembleManager from prepareEnvironment(). This
     // should really be done externally (and doing it externally should
     // help make the code more testable and flexible).
+
+    // I'm not going to handle ensembles of dags just yet (it would
+    // make the planning a little more complex).
 
     // Most of the rest of the code is the same, except for the removal of
     // helper functions which don't make sense without an Environment
@@ -96,6 +100,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
      * DAGs provided to the constructor.
      */
     public void plan() {
+
+        if(getAllDags.size() > 1) {
+            throw new RuntimeException("Can only handle single DAGs");
+        }
+
         // We assume the dags are in priority order, try to generate a plan
         // for each DAG.
         for (DAG dag : getAllDags()) {
