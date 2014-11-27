@@ -26,7 +26,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class TrivialPlannerTest {
 
     @Test
-    public void testCreateBasicPlan() {
+    public void testCreateBasicPlan() throws NoFeasiblePlan {
 
         // Diamond DAG
         DAG dag = new DAG();

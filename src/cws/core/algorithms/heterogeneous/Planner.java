@@ -4,6 +4,8 @@ import cws.core.dag.DAG;
 import java.util.List;
 import cws.core.core.VMType;
 import cws.core.algorithms.Plan;
+import cws.core.algorithms.Plan.NoFeasiblePlan;
+
 
 /**
  * Create a plan for the given dag using the VM types given.
@@ -12,5 +14,5 @@ import cws.core.algorithms.Plan;
  */
     public interface Planner {
 
-    public abstract Plan planDAG(DAG dag, List<VMType> availableVMTypes);
-}
+        public abstract Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan;
+    }

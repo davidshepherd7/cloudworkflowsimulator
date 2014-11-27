@@ -28,7 +28,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class TrivialPlanner implements Planner {
     
     @Override
-    public Plan planDAG(DAG dag, List<VMType> availableVMTypes) {
+    public Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
 
         // Pick VM type with most mips
         Comparator<VMType> vmCompare = new Comparator<VMType>() {
