@@ -39,8 +39,9 @@ public class TrivialPlannerTest {
         dag.addEdge("1", "3");
         dag.addEdge("2", "3");
 
-        VMType vmtype = VMTypeBuilder.newBuilder().mips(20).cores(1).price(1).build();
-        List<VMType> vmtypes = Arrays.asList(vmtype);
+        VMType fastvmtype = VMTypeBuilder.newBuilder().mips(20).cores(1).price(1).build();
+        VMType slowvmtype = VMTypeBuilder.newBuilder().mips(1).cores(1).price(1).build();
+        List<VMType> vmtypes = Arrays.asList(slowvmtype, fastvmtype);
 
         Planner planner = new TrivialPlanner();
         Plan plan = planner.planDAG(dag, vmtypes);
@@ -50,6 +51,10 @@ public class TrivialPlannerTest {
 
         // To one VM
         assertThat(plan.resources.size(), is(1));
+
+        // Which is the fastest VM
+        assertThat(plan.resources.iterator().next().vmtype, is(fastvmtype));
+
 
         // Order is handled by TopologicalOrder, so safe to assume it's ok
         // if that classes tests are passing.

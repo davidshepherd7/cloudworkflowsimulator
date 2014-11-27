@@ -1,6 +1,9 @@
 package cws.core.algorithms.heterogeneous;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 
 import cws.core.dag.DAG;
 import cws.core.core.VMType;
@@ -27,13 +30,18 @@ public class TrivialPlanner implements Planner {
     @Override
     public Plan planDAG(DAG dag, List<VMType> availableVMTypes) {
 
-        // Only works for a single VM
-        if(availableVMTypes.size() != 1) {
-            throw new RuntimeException("Only for a single VM");
-        }
+        // Pick VM type with most mips
+        Comparator<VMType> vmCompare = new Comparator<VMType>() {
+            @Override
+            public int compare(VMType v1, VMType v2) {
+                return -1 * Double.compare(v1.getMips(), v2.getMips());
+            }
+        };
+        List<VMType> sorted = new ArrayList<VMType>(availableVMTypes);
+        Collections.sort(sorted, vmCompare);
+        VMType vmType = sorted.get(0);
 
         // Create a resource for our one and only VM
-        VMType vmType = availableVMTypes.get(0);
         Resource r = new Resource(vmType);
 
         // Tasks must run in a topological order to ensure that parent
@@ -55,7 +63,7 @@ public class TrivialPlanner implements Planner {
             Solution sol = new Solution(r, slot, 10, false);
             sol.addToPlan(plan);
 
-            // Update
+            // Update times
             previous_finish_time += duration;
         }
 
