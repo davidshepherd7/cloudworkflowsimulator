@@ -96,9 +96,9 @@ public class HeftPlannerTest {
 
         DAG dag = new DAG();
         dag.addTask(new Task("a", "", 1.0));
-        dag.addTask(new Task("b", "", 1.0));
+        dag.addTask(new Task("b", "", 1.1));
         dag.addTask(new Task("c", "", 1.0));
-        dag.addTask(new Task("d", "", 1.0));
+        dag.addTask(new Task("d", "", 1.1));
         dag.addTask(new Task("e", "", 1.0));
         dag.addTask(new Task("f", "", 1.0));
         dag.addTask(new Task("g", "", 1.5)); // break the f vs g symmetry

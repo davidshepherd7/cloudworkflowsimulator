@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map; 
+import java.util.Map;
+import java.util.Random;
+
 
 import org.cloudbus.cloudsim.Log;
 
@@ -109,6 +111,9 @@ public class HeftPlanner implements Planner {
         Comparator<Task> compare = new Comparator<Task>() {
             @Override
             public int compare(Task t1, Task t2) {
+                // Tie breaking is supposed to be random (see H. Topcuoglu
+                // 2002 paper) but non-determinism is evil so I'll leave it
+                // up to the sorting algorithm to break ties.
                 return Double.compare(ranks.get(t1), ranks.get(t2));
             }
         };
