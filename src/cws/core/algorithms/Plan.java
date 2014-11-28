@@ -36,6 +36,18 @@ public class Plan {
         return cost;
     }
 
+    /** Easy way to add to schedule */
+    public void schedule(Resource r, Task t, double start) {
+        if(!resources.contains(r)) {
+            resources.add(r);
+        }
+
+        final double duration = r.vmtype.getPredictedTaskRuntime(t);
+
+        r.schedule.put(start, new Slot(t, start, duration));
+    }
+
+
     /** Class to group together the start and duration of a Task in a
      * Plan.
      */
