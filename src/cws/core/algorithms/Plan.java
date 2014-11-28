@@ -36,6 +36,11 @@ public class Plan {
         return cost;
     }
 
+    public String toString() {
+        return resources.toString();
+    }
+
+
     /** Easy way to add to schedule */
     public void schedule(Resource r, Task t, double start) {
         if(!resources.contains(r)) {
@@ -60,6 +65,11 @@ public class Plan {
             this.task = task;
             this.start = start;
             this.duration = duration;
+        }
+
+        public String toString() {
+            return String.format("Slot(%s, start: %f, duration: %f)",
+                    task.toString(), start, duration);
         }
     }
 
@@ -130,6 +140,10 @@ public class Plan {
                 runtime += sl.duration;
             }
             return runtime / (getFullBillingUnits() * vmtype.getBillingTimeInSeconds());
+        }
+
+        public String toString() {
+            return "Resource(" + vmtype.toString() + ", " + schedule.toString() + ")";
         }
     }
 
