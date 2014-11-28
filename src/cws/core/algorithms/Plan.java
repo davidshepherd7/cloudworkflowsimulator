@@ -125,10 +125,10 @@ public class Plan {
      * for comparison purposes.
      */
     public static class Solution {
-        double cost;
-        Resource resource;
-        Slot slot;
-        boolean newresource;
+        final double cost;
+        final Resource resource;
+        final Slot slot;
+        final boolean newresource;
 
         public Solution(Resource resource, Slot slot, double cost, boolean newresource) {
             this.resource = resource;
