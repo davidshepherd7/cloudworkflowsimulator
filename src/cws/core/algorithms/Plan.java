@@ -21,10 +21,7 @@ public class Plan {
     }
 
     public Plan(Plan other) {
-        this.resources = new LinkedHashSet<Resource>();
-        for (Resource r : other.resources) {
-            this.resources.add(new Resource(r));
-        }
+        this.resources = new LinkedHashSet<Resource>(other.resources);
     }
     
 
@@ -85,9 +82,7 @@ public class Plan {
 
         public Resource(Resource other) {
             this(other.vmtype);
-            for (Double s : other.schedule.navigableKeySet()) {
-                schedule.put(s, other.schedule.get(s));
-            }
+            this.schedule = new TreeMap<>(other.schedule);
         }
 
         public Resource(VMType vmtype) {
