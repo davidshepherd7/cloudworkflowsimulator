@@ -120,7 +120,7 @@ public class HeftPlannerTest {
         Map<VMType, Integer> vms = makeUniformVMS();
 
         // Check that the final tasks only depend on themselves
-        assertThat(HeftPlanner.rankU(tasks.getTaskById("f"), vms),
+        assertThat(HeftPlanner.upwardRank(tasks.getTaskById("f"), vms),
                 is(HeftPlanner.meanComputationTime(tasks.getTaskById("f"), vms)));
                 
 
@@ -128,9 +128,9 @@ public class HeftPlannerTest {
         // cost the same).
         double expectedRank = HeftPlanner.meanComputationTime(tasks.getTaskById("e"), vms)
                 // + HeftPlanner.cBar(tasks.getTaskById("e"), tasks.getTaskById("g"))
-                + HeftPlanner.rankU(tasks.getTaskById("g"), vms);
+                + HeftPlanner.upwardRank(tasks.getTaskById("g"), vms);
 
-        assertThat(HeftPlanner.rankU(tasks.getTaskById("e"), vms), is(expectedRank)); 
+        assertThat(HeftPlanner.upwardRank(tasks.getTaskById("e"), vms), is(expectedRank));
     }
 
     @Test

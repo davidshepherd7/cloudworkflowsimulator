@@ -70,7 +70,7 @@ public class HeftPlanner implements Planner {
      * Compute rank of a job, based on computation time, rank of successors
      * and transfer time to successors.
      */
-    public static double rankU(Task task, Map<VMType, Integer> vmNumbers) {
+    public static double upwardRank(Task task, Map<VMType, Integer> vmNumbers) {
 
         double max_child_rank = 0.0;
 
@@ -78,7 +78,7 @@ public class HeftPlanner implements Planner {
         List<Task> children = task.getChildren();
         if(children.size() > 0) {
             for(Task child : children) {
-                double crank = rankU(child, vmNumbers); // + cBar(child, task);
+                double crank = upwardRank(child, vmNumbers); // + cBar(child, task);
                 max_child_rank = Math.max(crank, max_child_rank);
             }
         }
@@ -88,7 +88,7 @@ public class HeftPlanner implements Planner {
 
 
     /**
-     * Get list of tasks in a DAG ordered by rankU().
+     * Get list of tasks in a DAG ordered by upwardRank().
      */
     public static List<Task> rankedTasks(DAG dag, Map<VMType, Integer> vmNumbers) {
 
@@ -102,7 +102,7 @@ public class HeftPlanner implements Planner {
         // Get all ranks and store in map
         final Map<Task, Double> ranks = new HashMap<Task, Double>();
         for(Task t : sorted) {
-            ranks.put(t, rankU(t, vmNumbers));
+            ranks.put(t, upwardRank(t, vmNumbers));
         } 
         
         // Construct function to sort by rank
