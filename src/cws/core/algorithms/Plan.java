@@ -40,9 +40,9 @@ public class Plan {
      * Plan.
      */
     public static class Slot {
-        public Task task;
-        public double start;
-        public double duration;
+        final public Task task;
+        final public double start;
+        final public double duration;
 
         public Slot(Task task, double start, double duration) {
             this.task = task;
