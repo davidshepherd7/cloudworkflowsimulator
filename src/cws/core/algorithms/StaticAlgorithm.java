@@ -95,8 +95,7 @@ public abstract class StaticAlgorithm extends HomogeneousAlgorithm implements Pr
             // Build task<->vm mappings
             LinkedList<Task> vmQueue = new LinkedList<Task>();
             vmQueues.put(vm, vmQueue);
-            for (Double start : r.schedule.navigableKeySet()) {
-                Slot slot = r.schedule.get(start);
+            for (Slot slot : r.getSlots()) {
                 Task task = slot.task;
                 taskMap.put(task, vm);
                 vmQueue.add(task);

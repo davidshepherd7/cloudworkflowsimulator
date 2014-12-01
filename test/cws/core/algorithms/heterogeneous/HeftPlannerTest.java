@@ -217,7 +217,7 @@ public class HeftPlannerTest {
 
         List<SimplePlanEntry> l = new ArrayList<>();
         for(Resource r : plan.resources) {
-            for(Slot s : r.schedule.values()) {
+            for(Slot s : r.getSlots()) {
                 SimplePlanEntry entry = new SimplePlanEntry(r.vmtype,  s.task.getId(),
                         s.start, s.duration);
                 l.add(entry);

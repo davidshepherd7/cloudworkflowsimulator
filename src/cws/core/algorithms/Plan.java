@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.Collection;
 
 import cws.core.core.VMType;
 import cws.core.dag.Task;
@@ -47,7 +48,7 @@ public class Plan {
 
         final double duration = r.vmtype.getPredictedTaskRuntime(t);
 
-        r.schedule.put(start, new Slot(t, start, duration));
+        r.addToSchedule(new Slot(t, start, duration));
     }
 
     /** Get the time a task finishes in the schedule*/
@@ -95,7 +96,7 @@ public class Plan {
 
         public VMType vmtype;
 
-        public TreeMap<Double, Slot> schedule;
+        private TreeMap<Double, Slot> schedule;
 
         public Resource(Resource other) {
             this(other.vmtype);
@@ -109,6 +110,14 @@ public class Plan {
 
         public SortedSet<Double> getStartTimes() {
             return schedule.navigableKeySet();
+        }
+
+        public Collection<Slot> getSlots() {
+            return schedule.values();
+        }
+
+        public void addToSchedule(Slot slot) {
+            schedule.put(slot.start, slot);
         }
 
         public double getStart() {
@@ -209,8 +218,15 @@ public class Plan {
         }
 
         public void addToPlan(Plan p) {
-            resource.schedule.put(slot.start, slot);
+            resource.addToSchedule(slot);
             p.resources.add(resource);
+        }
+
+        public String toString() {
+            return String.format("Solution(%s, start = %f, duration = %f)",
+                    resource.vmtype.toString(),
+                    slot.start,
+                    slot.duration);
         }
     }
 

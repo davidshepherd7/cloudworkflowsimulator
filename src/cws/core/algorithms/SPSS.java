@@ -178,11 +178,12 @@ public class SPSS extends StaticAlgorithm {
 
                 // Try placing it in a gap in the schedule
                 double lastEnd = -1;
-                gap: for (double start : r.getStartTimes()) {
+                gap: for (Slot slot : r.getSlots()) {
+                    double start = slot.start;
                     double begin = lastEnd;
                     double end = start;
 
-                    lastEnd = start + r.schedule.get(start).duration;
+                    lastEnd = start + slot.duration;
 
                     // This just skips the first occupied slot
                     if (begin < 0) {

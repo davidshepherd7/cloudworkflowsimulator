@@ -65,7 +65,7 @@ public class TrivialPlannerTest {
 
         Set<Task> planned = new HashSet<Task>();
         for(Resource r : plan.resources) {
-            for(Slot s : r.schedule.values()) {
+            for(Slot s : r.getSlots()) {
                 planned.add(s.task);
             }
         }
