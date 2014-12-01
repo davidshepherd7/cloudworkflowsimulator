@@ -117,7 +117,11 @@ public class Plan {
         }
 
         public void addToSchedule(Slot slot) {
-            schedule.put(slot.start, slot);
+            Slot previous = schedule.put(slot.start, slot);
+            if(previous != null) {
+                throw new RuntimeException("Tried to overwrite slot at time "
+                        + Double.toString(previous.start));
+            }
         }
 
         public double getStart() {
