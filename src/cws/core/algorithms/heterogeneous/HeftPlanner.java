@@ -32,11 +32,20 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 
 /**
- * TODO: implement storage aware version (i.e. non-zero data transfer time).
+ * Heterogeneous earliest finish time (HEFT) scheduling algorithm. See
+ * "Performance-effective and low-complexity task scheduling for
+ * heterogeneous computing" (Topcuoglu2002) for details.
+ *
+ * @author David Shepherd
+ *
+ * TODO: implement storage/communication aware version (i.e. with non-zero
+ * data transfer time).
  *
  */
 public class HeftPlanner implements Planner {
 
+
+    /** The main function of the Planner interface. */
     @Override
     public Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
 
@@ -50,12 +59,14 @@ public class HeftPlanner implements Planner {
         return createPlan(rankedTasks, vmNumbers);
     }
 
-    // Get computation time for a job on a vm.
+
+    /** Get computation time for a job on a vm. */
     public static double compCost(Task job, VMType vmtype) {
         return job.getSize() / vmtype.getMips();
     }
 
-    // Get average (over all VMs) of the time taken for this task.
+
+    /** Get average (over all VMs) of the time taken for this task. */
     public static double meanComputationTime(Task task, Map<VMType, Integer> vmNumbers) {
         double total = 0.0;
         int count = 0;
@@ -64,15 +75,6 @@ public class HeftPlanner implements Planner {
             count += entry.getValue();
         }
         return total / count;
-    }
-
-
-    /**
-     * Get average communication cost of the variables transferred between
-     * jobs t1 and t2 between all pairs of VMs. NOT IMPLEMENTED
-     */
-    public static double cBar(Task t1, Task t2) {
-        throw new UnsupportedOperationException("communication times not implemented.");
     }
 
 
@@ -134,6 +136,7 @@ public class HeftPlanner implements Planner {
     }
 
 
+    /** Actually create the plan. */
     public static Plan createPlan(List<Task> rankedTasks, Map<VMType, Integer> vmNumbers)
             throws NoFeasiblePlan {
 
