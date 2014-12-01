@@ -18,7 +18,7 @@ import cws.core.VM;
 import cws.core.core.VMType;
 import cws.core.core.VMTypeBuilder;
 import cws.core.VMFactory;
-
+import cws.core.provisioner.ConstantDistribution;
 import cws.core.cloudsim.CloudSimWrapper;
 import cws.core.engine.Environment;
 
@@ -39,7 +39,10 @@ public class HeftPlannerTest {
 
     public VMType makeVM(double mips) {
         return VMTypeBuilder.newBuilder().mips(mips).
-                cores(1).price(1.0).build();
+                cores(1).price(1.0)
+                .provisioningTime(new ConstantDistribution(0.0))
+                .deprovisioningTime(new ConstantDistribution(0.0))
+                .build();
     }
 
     public Map<VMType, Integer> makeUniformVMS() {
