@@ -25,7 +25,7 @@ public class Plan {
     public Plan(Plan other) {
         this.resources = new LinkedHashSet<Resource>(other.resources);
     }
-    
+
 
     public double getCost() {
         double cost = 0.0;
@@ -112,6 +112,9 @@ public class Plan {
             return schedule.navigableKeySet();
         }
 
+        /** Get an ordered collection of the slots in the schedule (in
+         * order of start time).
+         */
         public Collection<Slot> getSlots() {
             return schedule.values();
         }
@@ -122,6 +125,36 @@ public class Plan {
                 throw new RuntimeException("Tried to overwrite slot at time "
                         + Double.toString(previous.start));
             }
+        }
+
+        /** Find the time when the first gap of size desiredGapDuration is
+         * available. Trys both before all slots have started and after all
+         * slots have finished, as well as in between all scheduled slots.
+         */
+        public double findFirstGap(double desiredGapDuration) {
+
+            // Try to fit it in before any of the slots start.
+            if (schedule.size() == 0 || schedule.firstKey() > desiredGapDuration) {
+                return 0.0;
+            }
+
+            // Try to fit in between all the other pairs of slots
+            for (final Slot s : getSlots()) {
+                final double finishTime = s.start + s.duration;
+
+                // Get the start time of the next slot, null if there is no
+                // next slot.
+                final Double nextStart = schedule.higherKey(s.start);
+
+                if(nextStart == null
+                        || (nextStart - finishTime) > desiredGapDuration) {
+                    return finishTime;
+                }
+            }
+
+            // Never get here, should have found a slot with no following
+            // slot in the above loop.
+            throw new RuntimeException("Should never get here.");
         }
 
         public double getStart() {
