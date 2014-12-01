@@ -33,13 +33,21 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 /**
  * TODO: implement storage aware version (i.e. non-zero data transfer time).
- *      
+ *
  */
 public class HeftPlanner implements Planner {
 
     @Override
     public Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
-        return new Plan();
+
+        //??ds just say we have one of each vm for now...
+        Map<VMType, Integer> vmNumbers = new HashMap<>();
+        for(VMType vmt : availableVMTypes) {
+            vmNumbers.put(vmt, 1);
+        }
+
+        List<Task> rankedTasks = rankedTasks(dag, vmNumbers);
+        return createPlan(rankedTasks, vmNumbers);
     }
 
     // Get computation time for a job on a vm.
@@ -48,10 +56,10 @@ public class HeftPlanner implements Planner {
     }
 
     // Get average (over all VMs) of the time taken for this task.
-    public static double meanComputationTime(Task task, Map<VMType, Integer> nvms) {
+    public static double meanComputationTime(Task task, Map<VMType, Integer> vmNumbers) {
         double total = 0.0;
         int count = 0;
-        for(Map.Entry<VMType, Integer> entry : nvms.entrySet()) {
+        for(Map.Entry<VMType, Integer> entry : vmNumbers.entrySet()) {
             total += compCost(task, entry.getKey()) * entry.getValue();
             count += entry.getValue();
         }
@@ -64,7 +72,7 @@ public class HeftPlanner implements Planner {
      * jobs t1 and t2 between all pairs of VMs. NOT IMPLEMENTED
      */
     public static double cBar(Task t1, Task t2) {
-        throw new UnsupportedOperationException("communication times not implemented."); 
+        throw new UnsupportedOperationException("communication times not implemented.");
     }
 
 
@@ -105,8 +113,8 @@ public class HeftPlanner implements Planner {
         final Map<Task, Double> ranks = new HashMap<Task, Double>();
         for(Task t : sorted) {
             ranks.put(t, upwardRank(t, vmNumbers));
-        } 
-        
+        }
+
         // Construct function to sort by rank
         Comparator<Task> compare = new Comparator<Task>() {
             @Override
@@ -125,5 +133,56 @@ public class HeftPlanner implements Planner {
         return sorted;
     }
 
+
+    public static Plan createPlan(List<Task> rankedTasks, Map<VMType, Integer> vmNumbers)
+            throws NoFeasiblePlan {
+
+        Plan plan = new Plan();
+
+        // Create list of VM resources available
+        List<Resource> vms = new ArrayList<>();
+        for(Map.Entry<VMType, Integer> e : vmNumbers.entrySet()) {
+            for(int i=0; i<e.getValue(); i++){
+                vms.add(new Resource(e.getKey()));
+            }
+        }
+
+
+
+        // Schedule tasks in order
+        for(Task t : rankedTasks) {
+            // Get earliest possible start time
+            double est = 0;
+            for(Task p : t.getParents()) {
+                double parentFinishTime = plan.getFinishTime(p);
+                est = Math.max(est, parentFinishTime);
+
+            }
+
+            // Check each resource for earliest finish time, and pick the
+            // one that gives the earliest of them all.
+            double minEft = Double.MAX_VALUE;
+            Solution bestSolution = null;
+            for(Resource r : vms) {
+                final double duration = r.vmtype.getPredictedTaskRuntime(t);
+
+                //??ds no filling in yet!
+                final double startTime = Math.max(est, r.getEnd());
+                final double eft = startTime + duration;
+
+                if(eft < minEft) {
+                    minEft = eft;
+                    bestSolution = new Solution(r,
+                            new Slot(t, startTime, duration),
+                            r.vmtype.getVMCostFor(duration),
+                            false);
+                }
+            }
+
+            bestSolution.addToPlan(plan);
+        }
+
+        return plan;
+    }
 
 }

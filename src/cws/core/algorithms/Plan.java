@@ -1,5 +1,6 @@
 package cws.core.algorithms;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
@@ -47,6 +48,22 @@ public class Plan {
         final double duration = r.vmtype.getPredictedTaskRuntime(t);
 
         r.schedule.put(start, new Slot(t, start, duration));
+    }
+
+    /** Get the time a task finishes in the schedule*/
+    public double getFinishTime(Task t) {
+        //??ds optimise?
+
+        for(Resource r : resources) {
+            for(Map.Entry<Double, Slot> entry : r.schedule.entrySet()) {
+                Slot s = entry.getValue();
+                if(s.task.equals(t)) {
+                    return s.start + s.duration;
+                }
+            }
+        }
+
+        throw new RuntimeException("Task not in plan.");
     }
 
 

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
 
 
 import cws.core.VM;
@@ -25,6 +27,12 @@ import cws.core.engine.Environment;
 
 import cws.core.dag.Task;
 import cws.core.dag.DAG;
+
+import cws.core.algorithms.Plan;
+import cws.core.algorithms.Plan.Resource;
+import cws.core.algorithms.Plan.Solution;
+import cws.core.algorithms.Plan.Slot;
+import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 
 //??ds pull out some helper functions? eg. dag makers
@@ -84,7 +92,7 @@ public class HeftPlannerTest {
         assertThat(1.0,
                 is(HeftPlanner.meanComputationTime(myTask, makeUniformVMS())));
 
-        assertThat((2.0 + 4 + 1)/3, 
+        assertThat((2.0 + 4 + 1)/3,
                 is(HeftPlanner.meanComputationTime(myTask, makeNonUniformVMS())));
 
     }
@@ -125,7 +133,7 @@ public class HeftPlannerTest {
         // Check that the final tasks only depend on themselves
         assertThat(HeftPlanner.upwardRank(tasks.getTaskById("f"), vms),
                 is(HeftPlanner.meanComputationTime(tasks.getTaskById("f"), vms)));
-                
+
 
         // Check for one task deeper into the dag (assuming that f and g
         // cost the same).
@@ -154,6 +162,126 @@ public class HeftPlannerTest {
         assertThat(actual, is(expected));
     }
 
+    @Test
+    public void testCreatePlan() throws NoFeasiblePlan {
+
+        Map<VMType, Integer> vmNumbers = makeUniformVMS();
+        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+
+        DAG dag = makeTasks();
+        List<Task> ranked = HeftPlanner.rankedTasks(dag, vmNumbers);
+
+        Plan actual = HeftPlanner.createPlan(ranked, vmNumbers);
+
+        Plan expected = new Plan();
+
+        Resource r = new Resource(vmt);
+        expected.schedule(r, dag.getTaskById("b"), 0.0);
+        expected.schedule(r, dag.getTaskById("d"), 1.1);
+        expected.schedule(r, dag.getTaskById("e"), 2.2);
+        expected.schedule(r, dag.getTaskById("g"), 3.2);
+
+        Resource r2 = new Resource(vmt);
+        expected.schedule(r2, dag.getTaskById("a"), 0.0);
+        expected.schedule(r2, dag.getTaskById("c"), 1.0);
+        expected.schedule(r2, dag.getTaskById("f"), 3.2);
+
+        // Resource with no jobs
+        expected.resources.add(new Resource(vmt));
+
+        assertSamePlans(actual, expected);
+    }
+
+    public void assertSamePlans(Plan actual, Plan expected) {
+        assertThat(simplifyPlan(actual), is(simplifyPlan(expected)));
+    }
+
+    //??ds testPlanWithFillIn
 
 
+
+    // Helper code to compare plans
+    // ============================================================
+
+    // Since we aren't allow to implement .equals for Task we have to copy
+    // the plan information to a new object which does implement .equals,
+    // then compare the new objects.
+
+    // I'm going to ignore the fact that two tasks from different DAGs can
+    // have the same id for now, because it seems to be impossible to work
+    // around here (maybe Task should store a DAG id as well?).
+
+
+    /** Convert a Plan to a simpler object for comparison purposes */
+    public List<SimplePlanEntry> simplifyPlan(Plan plan) {
+
+        List<SimplePlanEntry> l = new ArrayList<>();
+        for(Resource r : plan.resources) {
+            for(Slot s : r.schedule.values()) {
+                SimplePlanEntry entry = new SimplePlanEntry(r.vmtype,  s.task.getId(),
+                        s.start, s.duration);
+                l.add(entry);
+            }
+        }
+
+        // Sort by task id for ease of comparison.
+        Comparator<SimplePlanEntry> compare = new Comparator<SimplePlanEntry>() {
+            @Override
+            public int compare(SimplePlanEntry a, SimplePlanEntry b) {
+                return a.taskId.compareTo(b.taskId);
+            }
+        };
+
+        Collections.sort(l, compare);
+
+        return l;
+    }
+
+
+    public static class SimplePlanEntry {
+
+        public final VMType vmtype;
+        public final String taskId;
+        public final double start;
+        public final double duration;
+
+        SimplePlanEntry(VMType vmtype, String taskId, double start, double duration) {
+            this.vmtype = vmtype;
+            this.taskId = taskId;
+            this.start = start;
+            this.duration = duration;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(! (other instanceof SimplePlanEntry)) {
+                return false;
+            }
+            else {
+                SimplePlanEntry otherT = (SimplePlanEntry) other;
+                return otherT.taskId == taskId
+                        && otherT.vmtype == vmtype
+                        && fpEqual(otherT.start, start)
+                        && fpEqual(otherT.duration, duration);
+            }
+        }
+
+        // Hash sets of this object not implemented. Possible issues with
+        // floating point comparison in .equals().
+        @Override
+        public int hashCode() {
+            throw new UnsupportedOperationException("Hash code not implemented.");
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Entry(%s, %s, %f, %f)",
+                    vmtype, taskId, start, duration);
+        }
+
+        private boolean fpEqual(double a , double b) {
+            final double tol = 1e-10;
+            return Math.abs(a - b) < tol;
+        }
+    }
 }
