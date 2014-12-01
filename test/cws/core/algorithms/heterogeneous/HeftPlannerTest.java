@@ -192,6 +192,84 @@ public class HeftPlannerTest {
         assertSamePlans(actual, expected);
     }
 
+    @Test
+    public void testPlanWithInsertionAtStart() throws NoFeasiblePlan {
+        Map<VMType, Integer> vmNumbers = makeUniformVMS(2);
+        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+
+        // Make tasks
+        // ============================================================
+
+        DAG dag = new DAG();
+
+        dag.addTask(new Task("a", "", 9));
+        dag.addTask(new Task("b", "", 10));
+        dag.addTask(new Task("c", "", 11));
+        dag.addTask(new Task("d", "", 1));
+
+        dag.addEdge("a", "b");
+        dag.addEdge("a", "c");
+
+
+        // Make expected plan
+        // ============================================================
+
+        Plan expected = new Plan();
+
+        Resource r = new Resource(vmt);
+        expected.schedule(r, dag.getTaskById("a"), 0.0);
+        expected.schedule(r, dag.getTaskById("c"), 9.0);
+
+        Resource r2 = new Resource(vmt);
+        expected.schedule(r2, dag.getTaskById("b"), 9.0);
+        expected.schedule(r2, dag.getTaskById("d"), 0.0);
+
+        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vmNumbers),
+                vmNumbers);
+
+        assertSamePlans(actual, expected);
+    }
+
+    @Test
+    public void testPlanWithInsertionInMiddle() throws NoFeasiblePlan {
+        Map<VMType, Integer> vmNumbers = makeUniformVMS(2);
+        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+
+        // Make tasks
+        // ============================================================
+
+        DAG dag = new DAG();
+
+        dag.addTask(new Task("a", "", 9));
+        dag.addTask(new Task("b", "", 10));
+        dag.addTask(new Task("c", "", 11));
+        dag.addTask(new Task("d", "", 1));
+        dag.addTask(new Task("e", "", 1));
+
+        dag.addEdge("a", "b");
+        dag.addEdge("a", "c");
+
+
+        // Make expected plan
+        // ============================================================
+
+        Plan expected = new Plan();
+
+        Resource r = new Resource(vmt);
+        expected.schedule(r, dag.getTaskById("a"), 0.0);
+        expected.schedule(r, dag.getTaskById("c"), 9.0);
+
+        Resource r2 = new Resource(vmt);
+        expected.schedule(r2, dag.getTaskById("b"), 9.0);
+        expected.schedule(r2, dag.getTaskById("d"), 0.0);
+        expected.schedule(r2, dag.getTaskById("e"), 1.0);
+
+        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vmNumbers),
+                vmNumbers);
+
+        assertSamePlans(actual, expected);
+    }
+
     public void assertSamePlans(Plan actual, Plan expected) {
         assertThat(simplifyPlan(actual), is(simplifyPlan(expected)));
     }

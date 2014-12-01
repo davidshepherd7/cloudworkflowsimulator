@@ -137,8 +137,6 @@ public class HeftPlanner implements Planner {
     public static Plan createPlan(List<Task> rankedTasks, Map<VMType, Integer> vmNumbers)
             throws NoFeasiblePlan {
 
-        Plan plan = new Plan();
-
         // Create list of VM resources available
         List<Resource> vms = new ArrayList<>();
         for(Map.Entry<VMType, Integer> e : vmNumbers.entrySet()) {
@@ -148,34 +146,36 @@ public class HeftPlanner implements Planner {
         }
 
 
-
-        // Schedule tasks in order
+        // Schedule tasks in rank order
+        Plan plan = new Plan();
         for(Task t : rankedTasks) {
-            // Get earliest possible start time
-            double est = 0;
+
+            // Get earliest possible start time based on parent limitations
+            double lastParentFinishTime = 0;
             for(Task p : t.getParents()) {
                 double parentFinishTime = plan.getFinishTime(p);
-                est = Math.max(est, parentFinishTime);
-
+                lastParentFinishTime = Math.max(lastParentFinishTime, parentFinishTime);
             }
 
             // Check each resource for earliest finish time, and pick the
             // one that gives the earliest of them all.
-            double minEft = Double.MAX_VALUE;
+            double earliestFinishTime = Double.MAX_VALUE;
             Solution bestSolution = null;
             for(Resource r : vms) {
+
+                // Compute times
                 final double duration = r.vmtype.getPredictedTaskRuntime(t);
+                final double resourceStartTime = Math.max(r.findFirstGap(duration),
+                        lastParentFinishTime);
+                final double resourceFinishTime = resourceStartTime + duration;
 
-                //??ds no filling in yet!
-                final double startTime = Math.max(est, r.getEnd());
-                final double eft = startTime + duration;
-
-                if(eft < minEft) {
-                    minEft = eft;
+                // If it's better then store it as the new best solution
+                if (resourceFinishTime < earliestFinishTime) {
                     bestSolution = new Solution(r,
-                            new Slot(t, startTime, duration),
+                            new Slot(t, resourceStartTime, duration),
                             r.vmtype.getVMCostFor(duration),
                             false);
+                    earliestFinishTime = resourceFinishTime;
                 }
             }
 
