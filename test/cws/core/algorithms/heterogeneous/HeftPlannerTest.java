@@ -53,11 +53,11 @@ public class HeftPlannerTest {
                 .build();
     }
 
-    public Map<VMType, Integer> makeUniformVMS() {
+    public Map<VMType, Integer> makeUniformVMS(int nVM) {
 
         // 3 identical VMs
         Map<VMType, Integer> agents = new HashMap<>();
-        agents.put(makeVM(1.0), 3);
+        agents.put(makeVM(1.0), nVM);
 
         return agents;
     }
@@ -90,7 +90,7 @@ public class HeftPlannerTest {
         Task myTask = new Task("a", "", 1.0);
 
         assertThat(1.0,
-                is(HeftPlanner.meanComputationTime(myTask, makeUniformVMS())));
+                is(HeftPlanner.meanComputationTime(myTask, makeUniformVMS(3))));
 
         assertThat((2.0 + 4 + 1)/3,
                 is(HeftPlanner.meanComputationTime(myTask, makeNonUniformVMS())));
@@ -128,7 +128,7 @@ public class HeftPlannerTest {
     public void testRankU() {
 
         DAG tasks = makeTasks();
-        Map<VMType, Integer> vms = makeUniformVMS();
+        Map<VMType, Integer> vms = makeUniformVMS(3);
 
         // Check that the final tasks only depend on themselves
         assertThat(HeftPlanner.upwardRank(tasks.getTaskById("f"), vms),
@@ -158,14 +158,14 @@ public class HeftPlannerTest {
         expected.add(dag.getTaskById("g"));
         expected.add(dag.getTaskById("f"));
 
-        List<Task> actual = HeftPlanner.rankedTasks(dag, makeUniformVMS());
+        List<Task> actual = HeftPlanner.rankedTasks(dag, makeUniformVMS(3));
         assertThat(actual, is(expected));
     }
 
     @Test
     public void testCreatePlan() throws NoFeasiblePlan {
 
-        Map<VMType, Integer> vmNumbers = makeUniformVMS();
+        Map<VMType, Integer> vmNumbers = makeUniformVMS(3);
         VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
 
         DAG dag = makeTasks();
