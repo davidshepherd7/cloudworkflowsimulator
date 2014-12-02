@@ -38,7 +38,8 @@ public class SimulationTest {
     public void setUp() throws Exception {
         Options options = Simulation.buildOptions();
         validArgs = CommandLineBuilder.fromOptions(options).addOption("application", "GENOME")
-                .addOption("input-dir", "dags/").addOption("output-file", "testSimulationTest")
+                .addOption("input-dir", "dags/")
+                .addOption("output-file", "test_results/testSimulationTest")
                 .addOption("distribution", "fixed1000").addOption("algorithm", "DPDS").addOption("ensemble-size", "1");
     }
 
