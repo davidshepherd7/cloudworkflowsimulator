@@ -196,4 +196,44 @@ public class HeftPlannerTest extends PlannerTestBase {
 
         assertSamePlans(actual, expected);
     }
+
+
+    @Test
+    public void testWithHeterogeneousVMs() throws NoFeasiblePlan {
+
+        // Make the dag
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 20));
+        dag.addTask(new Task("b", "", 10));
+        dag.addTask(new Task("c", "", 20));
+        dag.addTask(new Task("d", "", 1));
+        dag.addTask(new Task("e", "", 5));
+
+        dag.addEdge("a", "b");
+        dag.addEdge("a", "c");
+        dag.addEdge("b", "e");
+        dag.addEdge("c", "d");
+
+        // One fast one slow VM
+        VMType fastVM = makeVM(10);
+        VMType slowVM = makeVM(1);
+        Map<VMType, Integer> vms = new HashMap<>();
+        vms.put(fastVM, 1);
+        vms.put(slowVM, 1);
+
+        // Expected plan
+        Plan expected = new Plan();
+        Resource r = new Resource(fastVM);
+        expected.schedule(r, dag.getTaskById("a"), 0);
+        expected.schedule(r, dag.getTaskById("b"), 4);
+        expected.schedule(r, dag.getTaskById("c"), 2);
+        expected.schedule(r, dag.getTaskById("e"), 5);
+        Resource rSlow = new Resource(slowVM);
+        expected.schedule(rSlow, dag.getTaskById("d"), 4);
+
+        // Check it
+        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), vms);
+        assertSamePlans(actual, expected);
+    }
+
 }
