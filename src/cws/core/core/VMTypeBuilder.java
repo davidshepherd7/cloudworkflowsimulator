@@ -11,6 +11,8 @@ public class VMTypeBuilder {
     private static final ContinuousDistribution DEFAULT_PROVISIONING_DELAY = new ConstantDistribution(0.0);
     private static final ContinuousDistribution DEFAULT_DEPROVISIONING_DELAY = new ConstantDistribution(10.0);
 
+    private static final double DEFAULT_POWER_CONSUMPTION = 50.0;
+
     public static MipsStep newBuilder() {
         return new Steps();
     }
@@ -36,6 +38,8 @@ public class VMTypeBuilder {
 
         OptionalsStep cacheSize(long cacheSize);
 
+        OptionalsStep powerConsumptionInWatts(double powerConsumptionInWatts);
+
         VMType build();
     }
 
@@ -48,6 +52,7 @@ public class VMTypeBuilder {
         private ContinuousDistribution provisioningTime = DEFAULT_PROVISIONING_DELAY;
         private ContinuousDistribution deprovisioningTime = DEFAULT_DEPROVISIONING_DELAY;
         private long cacheSize = DEFAULT_CACHE_SIZE;
+        private double powerConsumptionInWatts = DEFAULT_POWER_CONSUMPTION;
 
         @Override
         public CoresStep mips(double mips) {
@@ -93,8 +98,16 @@ public class VMTypeBuilder {
         }
 
         @Override
+        public OptionalsStep powerConsumptionInWatts(double powerConsumptionInWatts) {
+            this.powerConsumptionInWatts = powerConsumptionInWatts;
+            return this;
+        }
+
+        @Override
         public VMType build() {
-            return new VMType(mips, cores, price, billingTimeInSeconds, provisioningTime, deprovisioningTime, cacheSize);
+            return new VMType(mips, cores, price, billingTimeInSeconds,
+                    provisioningTime, deprovisioningTime, cacheSize,
+                    powerConsumptionInWatts);
         }
     }
 }

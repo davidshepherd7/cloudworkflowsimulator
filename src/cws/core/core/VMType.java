@@ -11,6 +11,11 @@ public class VMType implements Cloneable {
     private final double mips;
 
     /**
+     * The electrical power consumption of this VM
+     */
+    public final double powerConsumption;
+
+    /**
      * The number of cores of this VM
      */
     private final int cores;
@@ -92,7 +97,8 @@ public class VMType implements Cloneable {
     }
 
     public VMType(double mips, int cores, double billingUnitPrice, double billingTimeInSeconds,
-                  ContinuousDistribution provisioningTime, ContinuousDistribution deprovisioningTime, long cacheSize) {
+            ContinuousDistribution provisioningTime, ContinuousDistribution deprovisioningTime,
+            long cacheSize, double powerConsumption) {
         this.mips = mips;
         this.cores = cores;
         this.billingUnitPrice = billingUnitPrice;
@@ -100,5 +106,6 @@ public class VMType implements Cloneable {
         this.provisioningDelay = provisioningTime;
         this.deprovisioningDelay = deprovisioningTime;
         this.cacheSize = cacheSize;
+        this.powerConsumption = powerConsumption;
     }
 }
