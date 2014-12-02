@@ -1,5 +1,6 @@
 package cws.core.algorithms.heterogeneous;
 
+import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,7 +29,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class TrivialPlanner implements Planner {
     
     @Override
-    public Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
+    public Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
 
         // Pick VM type with most mips
         Comparator<VMType> vmCompare = new Comparator<VMType>() {
@@ -37,7 +38,7 @@ public class TrivialPlanner implements Planner {
                 return -1 * Double.compare(v1.getMips(), v2.getMips());
             }
         };
-        List<VMType> sorted = new ArrayList<VMType>(availableVMTypes);
+        List<VMType> sorted = new ArrayList<VMType>(vmNumbers.keySet());
         Collections.sort(sorted, vmCompare);
         VMType vmType = sorted.get(0);
 

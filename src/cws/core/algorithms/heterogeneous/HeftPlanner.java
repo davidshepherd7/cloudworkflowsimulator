@@ -47,14 +47,7 @@ public class HeftPlanner implements Planner {
 
     /** The main function of the Planner interface. */
     @Override
-    public Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
-
-        //??ds just say we have one of each vm for now...
-        Map<VMType, Integer> vmNumbers = new HashMap<>();
-        for(VMType vmt : availableVMTypes) {
-            vmNumbers.put(vmt, 1);
-        }
-
+    public Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
         List<Task> rankedTasks = rankedTasks(dag, vmNumbers);
         return createPlan(rankedTasks, vmNumbers);
     }

@@ -1,6 +1,7 @@
 package cws.core.algorithms.heterogeneous;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -78,8 +79,9 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /** Set of idle VMs */
     private final HashSet<VM> idleVms = new HashSet<VM>();
 
-    /** The VM types which can be created */
-    private final List<VMType> availableVMTypes;
+    /** The VM types which can be created, and the number of each that can
+     * be created. */
+    private final Map<VMType, Integer> vmNumbers;
 
     /** The class responsible for creating the plan */
     private Planner planner;
@@ -87,11 +89,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
 
     public StaticHeterogeneousAlgorithm(double budget, double deadline,
             List<DAG> dags, AlgorithmStatistics ensembleStatistics,
-            Planner planner, List<VMType> availableVMTypes,
+            Planner planner, Map<VMType, Integer> vmNumbers,
             CloudSimWrapper cloudsim) {
         super(budget, deadline, dags, ensembleStatistics, cloudsim);
 
-        this.availableVMTypes = availableVMTypes;
+        this.vmNumbers = vmNumbers;
         this.planner = planner;
     }
 
@@ -123,7 +125,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         for (DAG dag : getAllDags()) {
             try {
                 // Create the plan
-                Plan newPlan = planDAG(dag, this.availableVMTypes);
+                Plan newPlan = planDAG(dag, this.vmNumbers);
 
                 // Plan was feasible, accept it
                 if (newPlan.getCost() <= getBudget()) {
@@ -169,17 +171,17 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /**
      * Develop a plan for a single DAG
      */
-    Plan planDAG(DAG dag, List<VMType> availableVMTypes) throws NoFeasiblePlan {
+    Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
 
         // Error checks
-        if(availableVMTypes.size() == 0) {
+        if(vmNumbers.size() == 0) {
             throw new RuntimeException("No VMTypes given");
         }
         if(dag.getTasks().length == 0) {
             throw new RuntimeException("No tasks in dag");
         }
 
-        return this.planner.planDAG(dag, availableVMTypes);
+        return this.planner.planDAG(dag, vmNumbers);
     }
 
     private void submitDAG(DAG dag) {

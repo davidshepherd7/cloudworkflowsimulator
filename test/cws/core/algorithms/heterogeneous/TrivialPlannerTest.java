@@ -3,8 +3,9 @@ package cws.core.algorithms.heterogeneous;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 import org.junit.Test;
 
@@ -22,10 +23,12 @@ public class TrivialPlannerTest  extends PlannerTestBase {
 
         VMType fastvmtype = VMTypeBuilder.newBuilder().mips(20).cores(1).price(1).build();
         VMType slowvmtype = VMTypeBuilder.newBuilder().mips(1).cores(1).price(1).build();
-        List<VMType> vmtypes = Arrays.asList(slowvmtype, fastvmtype);
+        Map<VMType, Integer> vmNumbers = new HashMap<>();
+        vmNumbers.put(fastvmtype, 1);
+        vmNumbers.put(slowvmtype, 1);
 
         Planner planner = new TrivialPlanner();
-        Plan plan = planner.planDAG(dag, vmtypes);
+        Plan plan = planner.planDAG(dag, vmNumbers);
 
         // All planned
         assertAllTasksArePlanned(plan, dag);
