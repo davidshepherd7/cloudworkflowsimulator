@@ -35,58 +35,12 @@ import cws.core.algorithms.Plan.Slot;
 import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 
-//??ds pull out some helper functions? eg. dag makers
 
-
-// Based on https://github.com/mrocklin/heft/blob/master/heft/tests/test_core.py
-public class HeftPlannerTest {
-
-    @Before
-    public void setUp() {
-    }
-
-    public VMType makeVM(double mips) {
-        return VMTypeBuilder.newBuilder().mips(mips).
-                cores(1).price(1.0)
-                .provisioningTime(new ConstantDistribution(0.0))
-                .deprovisioningTime(new ConstantDistribution(0.0))
-                .build();
-    }
-
-    public Map<VMType, Integer> makeUniformVMS(int nVM) {
-
-        // 3 identical VMs
-        Map<VMType, Integer> agents = new HashMap<>();
-        agents.put(makeVM(1.0), nVM);
-
-        return agents;
-    }
-
-    public Map<VMType, Integer> makeNonUniformVMS() {
-
-        // One each of three different VMs
-        Map<VMType, Integer> agents = new HashMap<>();
-        agents.put(makeVM(0.5), 1);
-        agents.put(makeVM(0.25), 1);
-        agents.put(makeVM(1.0), 1);
-
-        return agents;
-    }
+public class HeftPlannerTest extends PlannerTestBase {
 
 
     @Test
-    public void testVMEquality() {
-        VMType a = makeVM(2.0);
-        VMType b = makeVM(2.0);
-        VMType c = makeVM(3.0);
-
-        Assert.assertTrue(a.equals(a));
-        Assert.assertFalse(a.equals(b));
-        Assert.assertFalse(a.equals(c));
-    }
-
-    @Test
-    public void testWBar() {
+    public void testMeanComputationTime() {
         Task myTask = new Task("a", "", 1.0);
 
         assertThat(1.0,
@@ -95,33 +49,6 @@ public class HeftPlannerTest {
         assertThat((2.0 + 4 + 1)/3,
                 is(HeftPlanner.meanComputationTime(myTask, makeNonUniformVMS())));
 
-    }
-
-
-    public DAG makeTasks() {
-        // dag = {a: (c,),
-        //        b: (d,),
-        //        c: (e,),
-        //        d: (e,),
-        //        e: (f, g)}
-
-        DAG dag = new DAG();
-        dag.addTask(new Task("a", "", 1.0));
-        dag.addTask(new Task("b", "", 1.1));
-        dag.addTask(new Task("c", "", 1.0));
-        dag.addTask(new Task("d", "", 1.1));
-        dag.addTask(new Task("e", "", 1.0));
-        dag.addTask(new Task("f", "", 1.0));
-        dag.addTask(new Task("g", "", 1.5)); // break the f vs g symmetry
-
-        dag.addEdge("a", "c");
-        dag.addEdge("b", "d");
-        dag.addEdge("c", "e");
-        dag.addEdge("d", "e");
-        dag.addEdge("e", "f");
-        dag.addEdge("e", "g");
-
-        return dag;
     }
 
     @Test
@@ -268,98 +195,5 @@ public class HeftPlannerTest {
                 vmNumbers);
 
         assertSamePlans(actual, expected);
-    }
-
-    public void assertSamePlans(Plan actual, Plan expected) {
-        assertThat(simplifyPlan(actual), is(simplifyPlan(expected)));
-    }
-
-    //??ds testPlanWithFillIn
-
-
-
-    // Helper code to compare plans
-    // ============================================================
-
-    // Since we aren't allow to implement .equals for Task we have to copy
-    // the plan information to a new object which does implement .equals,
-    // then compare the new objects.
-
-    // I'm going to ignore the fact that two tasks from different DAGs can
-    // have the same id for now, because it seems to be impossible to work
-    // around here (maybe Task should store a DAG id as well?).
-
-
-    /** Convert a Plan to a simpler object for comparison purposes */
-    public List<SimplePlanEntry> simplifyPlan(Plan plan) {
-
-        List<SimplePlanEntry> l = new ArrayList<>();
-        for(Resource r : plan.resources) {
-            for(Slot s : r.getSlots()) {
-                SimplePlanEntry entry = new SimplePlanEntry(r.vmtype,  s.task.getId(),
-                        s.start, s.duration);
-                l.add(entry);
-            }
-        }
-
-        // Sort by task id for ease of comparison.
-        Comparator<SimplePlanEntry> compare = new Comparator<SimplePlanEntry>() {
-            @Override
-            public int compare(SimplePlanEntry a, SimplePlanEntry b) {
-                return a.taskId.compareTo(b.taskId);
-            }
-        };
-
-        Collections.sort(l, compare);
-
-        return l;
-    }
-
-
-    public static class SimplePlanEntry {
-
-        public final VMType vmtype;
-        public final String taskId;
-        public final double start;
-        public final double duration;
-
-        SimplePlanEntry(VMType vmtype, String taskId, double start, double duration) {
-            this.vmtype = vmtype;
-            this.taskId = taskId;
-            this.start = start;
-            this.duration = duration;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if(! (other instanceof SimplePlanEntry)) {
-                return false;
-            }
-            else {
-                SimplePlanEntry otherT = (SimplePlanEntry) other;
-                return otherT.taskId == taskId
-                        && otherT.vmtype == vmtype
-                        && fpEqual(otherT.start, start)
-                        && fpEqual(otherT.duration, duration);
-            }
-        }
-
-        // Hash sets of this object not implemented. Possible issues with
-        // floating point comparison in .equals().
-        @Override
-        public int hashCode() {
-            throw new UnsupportedOperationException("Hash code not implemented.");
-        }
-
-        @Override
-        public String toString() {
-            return String.format("Entry(%s, %s, %f, %f)",
-                    vmtype, taskId, start, duration);
-        }
-
-        private boolean fpEqual(double a , double b) {
-            final double tol = 1e-10;
-            return Math.abs(a - b) < tol;
-        }
     }
 }
