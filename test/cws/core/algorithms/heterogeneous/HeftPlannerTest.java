@@ -59,41 +59,38 @@ public class HeftPlannerTest extends PlannerTestBase {
     @Test
     public void testCreatePlan() throws NoFeasiblePlan {
 
-        Map<VMType, Integer> vmNumbers = makeUniformVMS(3);
-        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+        List<VMType> vms = makeUniformVMS(3);
 
         DAG dag = makeTasks();
-        List<Task> ranked = HeftPlanner.rankedTasks(dag, vmNumbers);
+        List<Task> ranked = HeftPlanner.rankedTasks(dag, vms);
 
-        Plan actual = HeftPlanner.createPlan(ranked, vmNumbers);
+        Plan actual = HeftPlanner.createPlan(ranked, vms);
 
         Plan expected = new Plan();
 
-        Resource r = new Resource(vmt);
+        Resource r = new Resource(vms.get(0));
         expected.schedule(r, dag.getTaskById("b"), 0.0);
         expected.schedule(r, dag.getTaskById("d"), 1.1);
         expected.schedule(r, dag.getTaskById("e"), 2.2);
         expected.schedule(r, dag.getTaskById("g"), 3.2);
 
-        Resource r2 = new Resource(vmt);
+        Resource r2 = new Resource(vms.get(1));
         expected.schedule(r2, dag.getTaskById("a"), 0.0);
         expected.schedule(r2, dag.getTaskById("c"), 1.0);
         expected.schedule(r2, dag.getTaskById("f"), 3.2);
 
         // Resource with no jobs
-        expected.resources.add(new Resource(vmt));
+        expected.resources.add(new Resource(vms.get(2)));
 
         assertSamePlans(actual, expected);
     }
 
     @Test
     public void testPlanWithInsertionAtStart() throws NoFeasiblePlan {
-        Map<VMType, Integer> vmNumbers = makeUniformVMS(2);
-        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+        List<VMType> vms = makeUniformVMS(2);
 
         // Make tasks
         // ============================================================
-
         DAG dag = new DAG();
 
         dag.addTask(new Task("a", "", 9));
@@ -110,24 +107,22 @@ public class HeftPlannerTest extends PlannerTestBase {
 
         Plan expected = new Plan();
 
-        Resource r = new Resource(vmt);
+        Resource r = new Resource(vms.get(0));
         expected.schedule(r, dag.getTaskById("a"), 0.0);
         expected.schedule(r, dag.getTaskById("c"), 9.0);
 
-        Resource r2 = new Resource(vmt);
+        Resource r2 = new Resource(vms.get(1));
         expected.schedule(r2, dag.getTaskById("b"), 9.0);
         expected.schedule(r2, dag.getTaskById("d"), 0.0);
 
-        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vmNumbers),
-                vmNumbers);
+        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), vms);
 
         assertSamePlans(actual, expected);
     }
 
     @Test
     public void testPlanWithInsertionInMiddle() throws NoFeasiblePlan {
-        Map<VMType, Integer> vmNumbers = makeUniformVMS(2);
-        VMType vmt = vmNumbers.keySet().iterator().next(); // only one VMType
+        List<VMType> vms = makeUniformVMS(2);
 
         // Make tasks
         // ============================================================
@@ -149,17 +144,16 @@ public class HeftPlannerTest extends PlannerTestBase {
 
         Plan expected = new Plan();
 
-        Resource r = new Resource(vmt);
+        Resource r = new Resource(vms.get(0));
         expected.schedule(r, dag.getTaskById("a"), 0.0);
         expected.schedule(r, dag.getTaskById("c"), 9.0);
 
-        Resource r2 = new Resource(vmt);
+        Resource r2 = new Resource(vms.get(1));
         expected.schedule(r2, dag.getTaskById("b"), 9.0);
         expected.schedule(r2, dag.getTaskById("d"), 0.0);
         expected.schedule(r2, dag.getTaskById("e"), 1.0);
 
-        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vmNumbers),
-                vmNumbers);
+        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), vms);
 
         assertSamePlans(actual, expected);
     }
@@ -184,9 +178,9 @@ public class HeftPlannerTest extends PlannerTestBase {
         // One fast one slow VM
         VMType fastVM = makeVM(10);
         VMType slowVM = makeVM(1);
-        Map<VMType, Integer> vms = new HashMap<>();
-        vms.put(fastVM, 1);
-        vms.put(slowVM, 1);
+        List<VMType> vms = new ArrayList<>();
+        vms.add(fastVM);
+        vms.add(slowVM);
 
         // Expected plan
         Plan expected = new Plan();

@@ -51,24 +51,25 @@ public class PlannerTestBase {
                 .build();
     }
 
-    public Map<VMType, Integer> makeUniformVMS(int nVM) {
+    public List<VMType> makeUniformVMS(int nVM) {
 
         // 3 identical VMs
-        Map<VMType, Integer> agents = new HashMap<>();
-        agents.put(makeVM(1.0), nVM);
-
-        return agents;
+        List<VMType> vms = new ArrayList<>();
+        for(int i=0; i<nVM; i++) {
+            vms.add(makeVM(1.0));
+        }
+        return vms;
     }
 
-    public Map<VMType, Integer> makeNonUniformVMS() {
+    public List<VMType> makeNonUniformVMS() {
 
         // One each of three different VMs
-        Map<VMType, Integer> agents = new HashMap<>();
-        agents.put(makeVM(0.5), 1);
-        agents.put(makeVM(0.25), 1);
-        agents.put(makeVM(1.0), 1);
+        List<VMType> vms = new ArrayList<>();
+        vms.add(makeVM(0.5));
+        vms.add(makeVM(0.25));
+        vms.add(makeVM(1.0));
 
-        return agents;
+        return vms;
     }
 
 

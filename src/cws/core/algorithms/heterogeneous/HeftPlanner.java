@@ -48,8 +48,15 @@ public class HeftPlanner implements Planner {
     /** The main function of the Planner interface. */
     @Override
     public Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
-        List<Task> rankedTasks = rankedTasks(dag, vmNumbers);
-        return createPlan(rankedTasks, vmNumbers);
+        List<VMType> vmList = new ArrayList<>();
+        for(Map.Entry<VMType, Integer> entry : vmNumbers.entrySet()) {
+            for(int i=0; i< entry.getValue(); i++) {
+                vmList.add(entry.getKey());
+            }
+        }
+
+        List<Task> rankedTasks = rankedTasks(dag, vmList);
+        return createPlan(rankedTasks, vmList);
     }
 
 
@@ -60,14 +67,13 @@ public class HeftPlanner implements Planner {
 
 
     /** Get average (over all VMs) of the time taken for this task. */
-    public static double meanComputationTime(Task task, Map<VMType, Integer> vmNumbers) {
+    public static double meanComputationTime(Task task, List<VMType> vms) {
         double total = 0.0;
         int count = 0;
-        for(Map.Entry<VMType, Integer> entry : vmNumbers.entrySet()) {
-            total += compCost(task, entry.getKey()) * entry.getValue();
-            count += entry.getValue();
+        for(VMType vm : vms) {
+            total += compCost(task, vm);
         }
-        return total / count;
+        return total / (vms.size());
     }
 
 
@@ -75,7 +81,7 @@ public class HeftPlanner implements Planner {
      * Compute rank of a job, based on computation time, rank of successors
      * and transfer time to successors.
      */
-    public static double upwardRank(Task task, Map<VMType, Integer> vmNumbers) {
+    public static double upwardRank(Task task, List<VMType> vms) {
 
         double max_child_rank = 0.0;
 
@@ -83,19 +89,19 @@ public class HeftPlanner implements Planner {
         List<Task> children = task.getChildren();
         if(children.size() > 0) {
             for(Task child : children) {
-                double crank = upwardRank(child, vmNumbers); // + cBar(child, task);
+                double crank = upwardRank(child, vms); // + cBar(child, task);
                 max_child_rank = Math.max(crank, max_child_rank);
             }
         }
 
-        return max_child_rank + meanComputationTime(task, vmNumbers);
+        return max_child_rank + meanComputationTime(task, vms);
     }
 
 
     /**
      * Get list of tasks in a DAG ordered by upwardRank().
      */
-    public static List<Task> rankedTasks(DAG dag, Map<VMType, Integer> vmNumbers) {
+    public static List<Task> rankedTasks(DAG dag, List<VMType> vms) {
 
         // Get tasks (this code is crap but I don't want to change the core
         // library too much so we're stuck with it...)
@@ -107,7 +113,7 @@ public class HeftPlanner implements Planner {
         // Get all ranks and store in map
         final Map<Task, Double> ranks = new HashMap<Task, Double>();
         for(Task t : sorted) {
-            ranks.put(t, upwardRank(t, vmNumbers));
+            ranks.put(t, upwardRank(t, vms));
         }
 
         // Construct function to sort by rank
@@ -130,20 +136,11 @@ public class HeftPlanner implements Planner {
 
 
     /** Actually create the plan. */
-    public static Plan createPlan(List<Task> rankedTasks, Map<VMType, Integer> vmNumbers)
+    public static Plan createPlan(List<Task> rankedTasks, List<VMType> vmList)
             throws NoFeasiblePlan {
 
-        // Create list of VM resources available
-        List<Resource> vms = new ArrayList<>();
-        for(Map.Entry<VMType, Integer> e : vmNumbers.entrySet()) {
-            for(int i=0; i<e.getValue(); i++){
-                vms.add(new Resource(e.getKey()));
-            }
-        }
-
-
         // Schedule tasks in rank order
-        Plan plan = new Plan();
+        Plan plan = new Plan(vmList);
         for(Task t : rankedTasks) {
 
             // Get earliest possible start time based on parent limitations
@@ -157,7 +154,7 @@ public class HeftPlanner implements Planner {
             // one that gives the earliest of them all.
             double earliestFinishTime = Double.MAX_VALUE;
             Solution bestSolution = null;
-            for(Resource r : vms) {
+            for(Resource r : plan.resources) {
 
                 // Compute times
                 final double duration = r.vmtype.getPredictedTaskRuntime(t);
