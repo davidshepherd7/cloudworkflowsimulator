@@ -38,39 +38,6 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 public class HeftPlannerTest extends PlannerTestBase {
 
-
-    @Test
-    public void testMeanComputationTime() {
-        Task myTask = new Task("a", "", 1.0);
-
-        assertThat(1.0,
-                is(HeftPlanner.meanComputationTime(myTask, makeUniformVMS(3))));
-
-        assertThat((2.0 + 4 + 1)/3,
-                is(HeftPlanner.meanComputationTime(myTask, makeNonUniformVMS())));
-
-    }
-
-    @Test
-    public void testRankU() {
-
-        DAG tasks = makeTasks();
-        Map<VMType, Integer> vms = makeUniformVMS(3);
-
-        // Check that the final tasks only depend on themselves
-        assertThat(HeftPlanner.upwardRank(tasks.getTaskById("f"), vms),
-                is(HeftPlanner.meanComputationTime(tasks.getTaskById("f"), vms)));
-
-
-        // Check for one task deeper into the dag (assuming that f and g
-        // cost the same).
-        double expectedRank = HeftPlanner.meanComputationTime(tasks.getTaskById("e"), vms)
-                // + HeftPlanner.cBar(tasks.getTaskById("e"), tasks.getTaskById("g"))
-                + HeftPlanner.upwardRank(tasks.getTaskById("g"), vms);
-
-        assertThat(HeftPlanner.upwardRank(tasks.getTaskById("e"), vms), is(expectedRank));
-    }
-
     @Test
     public void testRankedTasks() {
         DAG dag = makeTasks();
