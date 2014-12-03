@@ -62,9 +62,9 @@ public class HeftPlannerTest extends PlannerTestBase {
         List<VMType> vms = makeUniformVMS(3);
 
         DAG dag = makeTasks();
-        List<Task> ranked = HeftPlanner.rankedTasks(dag, vms);
 
-        Plan actual = HeftPlanner.createPlan(ranked, new Plan(vms));
+        Planner planner = new HeftPlanner();
+        Plan actual = planner.planDAG(dag, new Plan(vms));
 
         Plan expected = new Plan();
 
@@ -115,7 +115,8 @@ public class HeftPlannerTest extends PlannerTestBase {
         expected.schedule(r2, dag.getTaskById("b"), 9.0);
         expected.schedule(r2, dag.getTaskById("d"), 0.0);
 
-        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), new Plan(vms));
+        Planner planner = new HeftPlanner();
+        Plan actual = planner.planDAG(dag, new Plan(vms));
 
         assertSamePlans(actual, expected);
     }
@@ -153,7 +154,8 @@ public class HeftPlannerTest extends PlannerTestBase {
         expected.schedule(r2, dag.getTaskById("d"), 0.0);
         expected.schedule(r2, dag.getTaskById("e"), 1.0);
 
-        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), new Plan(vms));
+        Planner planner = new HeftPlanner();
+        Plan actual = planner.planDAG(dag, new Plan(vms));
 
         assertSamePlans(actual, expected);
     }
@@ -193,7 +195,9 @@ public class HeftPlannerTest extends PlannerTestBase {
         expected.schedule(rSlow, dag.getTaskById("d"), 4);
 
         // Check it
-        Plan actual = HeftPlanner.createPlan(HeftPlanner.rankedTasks(dag, vms), new Plan(vms));
+        Planner planner = new HeftPlanner();
+        Plan actual = planner.planDAG(dag, new Plan(vms));
+
         assertSamePlans(actual, expected);
     }
 
