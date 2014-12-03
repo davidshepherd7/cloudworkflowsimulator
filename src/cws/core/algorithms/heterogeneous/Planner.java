@@ -8,11 +8,12 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 
 /**
- * Create a plan for the given dag using the VM types given.
+ * Create a plan for the given dag on top of the initial plan given (which
+ * may contain some resources and some scheduled tasks).
  *
  * @author David Shepherd
  */
     public interface Planner {
 
-        public abstract Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan;
+        public abstract Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan;
     }

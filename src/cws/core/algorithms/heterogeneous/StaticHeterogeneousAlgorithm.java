@@ -79,9 +79,8 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /** Set of idle VMs */
     private final HashSet<VM> idleVms = new HashSet<VM>();
 
-    /** The VM types which can be created, and the number of each that can
-     * be created. */
-    private final Map<VMType, Integer> vmNumbers;
+    /** The plan containig the initially allocated VMs (as VMTypes) */
+    private final Plan initialPlan;
 
     /** The class responsible for creating the plan */
     private Planner planner;
@@ -89,11 +88,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
 
     public StaticHeterogeneousAlgorithm(double budget, double deadline,
             List<DAG> dags, AlgorithmStatistics ensembleStatistics,
-            Planner planner, Map<VMType, Integer> vmNumbers,
+            Planner planner, Plan initialPlan,
             CloudSimWrapper cloudsim) {
         super(budget, deadline, dags, ensembleStatistics, cloudsim);
 
-        this.vmNumbers = vmNumbers;
+        this.initialPlan = initialPlan;
         this.planner = planner;
     }
 
@@ -122,10 +121,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
 
         // We assume the dags are in priority order, try to generate a plan
         // for each DAG.
+        Plan plan = new Plan(this.initialPlan);
         for (DAG dag : getAllDags()) {
             try {
                 // Create the plan
-                Plan newPlan = planDAG(dag, this.vmNumbers);
+                Plan newPlan = planDAG(dag, plan);
 
                 // Plan was feasible, accept it
                 if (newPlan.getCost() <= getBudget()) {
@@ -171,17 +171,14 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /**
      * Develop a plan for a single DAG
      */
-    Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
+    Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
 
         // Error checks
-        if(vmNumbers.size() == 0) {
-            throw new RuntimeException("No VMTypes given");
-        }
         if(dag.getTasks().length == 0) {
             throw new RuntimeException("No tasks in dag");
         }
 
-        return this.planner.planDAG(dag, vmNumbers);
+        return this.planner.planDAG(dag, currentPlan);
     }
 
     private void submitDAG(DAG dag) {

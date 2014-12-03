@@ -29,7 +29,7 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class TrivialPlanner implements Planner {
     
     @Override
-    public Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
+    public Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
 
         // Pick VM type with most mips
         Comparator<VMType> vmCompare = new Comparator<VMType>() {
@@ -38,7 +38,7 @@ public class TrivialPlanner implements Planner {
                 return -1 * Double.compare(v1.getMips(), v2.getMips());
             }
         };
-        List<VMType> sorted = new ArrayList<VMType>(vmNumbers.keySet());
+        List<VMType> sorted = currentPlan.vmList();
         Collections.sort(sorted, vmCompare);
         VMType vmType = sorted.get(0);
 

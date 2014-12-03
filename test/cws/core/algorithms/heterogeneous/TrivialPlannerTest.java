@@ -5,6 +5,9 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+
 
 
 import org.junit.Test;
@@ -23,12 +26,12 @@ public class TrivialPlannerTest  extends PlannerTestBase {
 
         VMType fastvmtype = VMTypeBuilder.newBuilder().mips(20).cores(1).price(1).build();
         VMType slowvmtype = VMTypeBuilder.newBuilder().mips(1).cores(1).price(1).build();
-        Map<VMType, Integer> vmNumbers = new HashMap<>();
-        vmNumbers.put(fastvmtype, 1);
-        vmNumbers.put(slowvmtype, 1);
+        List<VMType> vms = new ArrayList<>();
+        vms.add(fastvmtype);
+        vms.add(slowvmtype);
 
         Planner planner = new TrivialPlanner();
-        Plan plan = planner.planDAG(dag, vmNumbers);
+        Plan plan = planner.planDAG(dag, new Plan(vms));
 
         // All planned
         assertAllTasksArePlanned(plan, dag);

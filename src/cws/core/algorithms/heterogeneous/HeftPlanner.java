@@ -47,16 +47,9 @@ public class HeftPlanner implements Planner {
 
     /** The main function of the Planner interface. */
     @Override
-    public Plan planDAG(DAG dag, Map<VMType, Integer> vmNumbers) throws NoFeasiblePlan {
-        List<VMType> vmList = new ArrayList<>();
-        for(Map.Entry<VMType, Integer> entry : vmNumbers.entrySet()) {
-            for(int i=0; i< entry.getValue(); i++) {
-                vmList.add(entry.getKey());
-            }
-        }
-
-        List<Task> rankedTasks = rankedTasks(dag, vmList);
-        return createPlan(rankedTasks, vmList);
+    public Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
+        List<Task> rankedTasks = rankedTasks(dag, currentPlan.vmList());
+        return createPlan(rankedTasks, currentPlan);
     }
 
 
@@ -136,11 +129,11 @@ public class HeftPlanner implements Planner {
 
 
     /** Actually create the plan. */
-    public static Plan createPlan(List<Task> rankedTasks, List<VMType> vmList)
+    public static Plan createPlan(List<Task> rankedTasks, Plan currentPlan)
             throws NoFeasiblePlan {
 
         // Schedule tasks in rank order
-        Plan plan = new Plan(vmList);
+        Plan plan = new Plan(currentPlan);
         for(Task t : rankedTasks) {
 
             // Get earliest possible start time based on parent limitations
