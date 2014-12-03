@@ -115,14 +115,28 @@ public class Plan {
 
         private TreeMap<Double, Slot> schedule;
 
+        // Times to start and stop the VM.
+        final public double startTime;
+        final public double terminationTime;
+
         public Resource(Resource other) {
-            this(other.vmtype);
+            this(other.vmtype, other.startTime, other.terminationTime);
             this.schedule = new TreeMap<>(other.schedule);
         }
 
         public Resource(VMType vmtype) {
+            this(vmtype, 0.0);
+        }
+
+        public Resource(VMType vmtype, double startTime) {
+            this(vmtype, startTime, Double.MAX_VALUE);
+        }
+
+        public Resource(VMType vmtype, double startTime, double terminationTime) {
             this.vmtype = vmtype;
             this.schedule = new TreeMap<Double, Slot>();
+            this.startTime = startTime;
+            this.terminationTime = terminationTime;
         }
 
         public SortedSet<Double> getStartTimes() {
@@ -137,7 +151,21 @@ public class Plan {
         }
 
         public void addToSchedule(Slot slot) {
+
+            // Check that the slot is within the times that the VM is active
+            if(slot.start < startTime) {
+                throw new RuntimeException(
+                        "Tried to schedule a task before VM will be ready");
+            }
+            if(slot.start + slot.duration > terminationTime) {
+                throw new RuntimeException(
+                        "Tried to schedule a task after VM will be terminated");
+            }
+
+            // Schedule it
             Slot previous = schedule.put(slot.start, slot);
+
+            // Check that we didn't just stomp another slot
             if(previous != null) {
                 throw new RuntimeException("Tried to overwrite slot at time "
                         + Double.toString(previous.start));
@@ -148,11 +176,12 @@ public class Plan {
          * available. Trys both before all slots have started and after all
          * slots have finished, as well as in between all scheduled slots.
          */
-        public double findFirstGap(double desiredGapDuration) {
+        public Double findFirstGap(double desiredGapDuration) {
 
             // Try to fit it in before any of the slots start.
-            if (schedule.size() == 0 || schedule.firstKey() > desiredGapDuration) {
-                return 0.0;
+            if (schedule.size() == 0 ||
+                    (schedule.firstKey() - startTime) > desiredGapDuration) {
+                return startTime;
             }
 
             // Try to fit in between all the other pairs of slots
@@ -163,20 +192,26 @@ public class Plan {
                 // next slot.
                 final Double nextStart = schedule.higherKey(s.start);
 
-                if(nextStart == null
-                        || (nextStart - finishTime) > desiredGapDuration) {
+                if(nextStart != null
+                        && (nextStart - finishTime) > desiredGapDuration) {
                     return finishTime;
                 }
             }
 
-            // Never get here, should have found a slot with no following
-            // slot in the above loop.
-            throw new RuntimeException("Should never get here.");
+            // Finally try to fit it in at the end
+            final double startOfLast = schedule.lastKey();
+            final double endOfLast = startOfLast + schedule.get(startOfLast).duration;
+            if ((terminationTime - endOfLast) > desiredGapDuration) {
+                return endOfLast;
+            } else {
+                // We failed, no slots available
+                return null;
+            }
         }
 
         public double getStart() {
             if (schedule.size() == 0) {
-                return 0.0;
+                return startTime;
             }
             return schedule.firstKey();
         }
@@ -189,6 +224,8 @@ public class Plan {
             Slot lastSlot = schedule.get(last);
             return last + lastSlot.duration + vmtype.getDeprovisioningDelayEstimation();
         }
+
+
 
         public int getFullBillingUnits() {
             return getFullBillingUnitsWith(getStart(), getEnd());
@@ -216,6 +253,8 @@ public class Plan {
             }
             return runtime / (getFullBillingUnits() * vmtype.getBillingTimeInSeconds());
         }
+
+
 
         public String toString() {
             return "Resource(" + vmtype.toString() + ", " + schedule.toString() + ")";
