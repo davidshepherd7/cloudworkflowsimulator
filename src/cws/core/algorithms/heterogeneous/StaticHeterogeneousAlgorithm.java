@@ -85,15 +85,13 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /** The class responsible for creating the plan */
     private Planner planner;
 
+    private StaticHeterogeneousAlgorithm(Builder builder) {
+        super(builder.budget, builder.deadline,
+                builder.dags, builder.ensembleStatistics,
+                builder.cloudsim);
 
-    public StaticHeterogeneousAlgorithm(double budget, double deadline,
-            List<DAG> dags, AlgorithmStatistics ensembleStatistics,
-            Planner planner, Plan initialPlan,
-            CloudSimWrapper cloudsim) {
-        super(budget, deadline, dags, ensembleStatistics, cloudsim);
-
-        this.initialPlan = initialPlan;
-        this.planner = planner;
+        this.initialPlan = builder.initialPlan;
+        this.planner = builder.planner;
     }
 
     /** Store planning time taken in nanos */
@@ -337,5 +335,54 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         idleVms.remove(vm);
         job.setVM(vm);
         vm.jobSubmit(job);
+    }
+
+    static public class Builder {
+
+        // Effectively infinite as the default
+        private double budget = Double.MAX_VALUE;
+        private double deadline = Double.MAX_VALUE;
+
+        private List<DAG> dags;
+        private Planner planner;
+        private Plan initialPlan = new Plan();
+        private Map<VMType, Integer> vmNumbers;
+        private CloudSimWrapper cloudsim;
+        private AlgorithmStatistics ensembleStatistics;
+
+
+        public Builder(List<DAG> dags, Planner planner, CloudSimWrapper cloudsim) {
+            this.dags = dags;
+            this.planner = planner;
+            this.cloudsim = cloudsim;
+        }
+
+        public Builder budget(double budget) {
+            this.budget = budget;
+            return this;
+        }
+
+        public Builder deadline(double deadline) {
+            this.deadline = deadline;
+            return this;
+        }
+
+        public Builder addInitialVMs(List<VMType> vms) {
+            for(VMType vmt : vms) {
+                this.initialPlan.resources.add(new Resource(vmt));
+            }
+            return this;
+        }
+
+        public StaticHeterogeneousAlgorithm build() {
+
+            this.ensembleStatistics =
+                    new AlgorithmStatistics(dags, budget, deadline, cloudsim);
+
+            StaticHeterogeneousAlgorithm built =
+                    new StaticHeterogeneousAlgorithm(this);
+
+            return built;
+        }
     }
 }
