@@ -2,6 +2,8 @@ package cws.core.algorithms;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -26,6 +28,21 @@ public class Plan {
         this.resources = new LinkedHashSet<Resource>(other.resources);
     }
 
+    public Plan(Collection<VMType> vms) {
+        this.resources = new LinkedHashSet<Resource>();
+        for(VMType vmt : vms) {
+            resources.add(new Resource(vmt));
+        }
+    }
+
+    // Make a list of vms available
+    public List<VMType> vmList() {
+        List<VMType> vms = new ArrayList<>();
+        for (Resource r : resources) {
+            vms.add(r.vmtype);
+        }
+        return vms;
+    }
 
     public double getCost() {
         double cost = 0.0;
