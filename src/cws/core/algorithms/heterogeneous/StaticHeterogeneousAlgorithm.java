@@ -113,52 +113,19 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
      */
     public void plan() {
 
-        if(this.getAllDags().size() > 1) {
-            throw new RuntimeException("Can only handle single DAGs");
+        if (this.getAllDags().size() > 1) {
+            throw new RuntimeException(
+                    "Only tested with single DAGs, but try removing this throw if you like");
         }
 
         // We assume the dags are in priority order, try to generate a plan
         // for each DAG.
         Plan plan = new Plan(this.initialPlan);
         for (DAG dag : getAllDags()) {
-            try {
-                // Create the plan
-                Plan newPlan = planDAG(dag, plan);
-
-                // Plan was feasible, accept it
-                if (newPlan.getCost() <= getBudget()) {
-                    admittedDAGs.add(dag);
-                    plan = newPlan;
-                    getCloudsim().log("Admitting DAG. Cost of new plan: " + plan.getCost());
-
-                    // Reject if too expensive
-                } else {
-                    getCloudsim().log("Rejecting DAG: New plan exceeds budget: " + newPlan.getCost());
-                }
-                // Or if no plan could be found
-            } catch (NoFeasiblePlan m) {
-                getCloudsim().log("Rejecting DAG: " + m.getMessage());
-            }
+            plan = planDAG(dag, plan);
         }
 
-        // Now allocate the resources specified in the plan
-        for (Resource r : plan.resources) {
-            // create VM
-            VMType vmType = r.vmtype;
-            VM vm = VMFactory.createVM(vmType, getCloudsim());
-
-            // Build task<->vm mappings
-            LinkedList<Task> vmQueue = new LinkedList<Task>();
-            vmQueues.put(vm, vmQueue);
-            for (Slot slot : r.getSlots()) {
-                Task task = slot.task;
-                taskMap.put(task, vm);
-                vmQueue.add(task);
-            }
-
-            // Launch the VM at its appointed time
-            launchVM(vm, r.getStart());
-        }
+        allocatePlannedResources(plan);
 
         // Submit the admitted DAGs
         for (DAG dag : admittedDAGs) {
@@ -169,15 +136,56 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     /**
      * Develop a plan for a single DAG
      */
-    Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
+    private Plan planDAG(DAG dag, Plan currentPlan) {
 
-        // Error checks
-        if(dag.getTasks().length == 0) {
-            throw new RuntimeException("No tasks in dag");
+        Plan newPlan;
+        try {
+            // Create the plan
+            newPlan = this.planner.planDAG(dag, currentPlan);
+
+        } catch (NoFeasiblePlan m) {
+            // If no good plan could be found then record it and return the
+            // original plan
+            getCloudsim().log("Rejecting DAG: " + m.getMessage());
+            return currentPlan;
         }
 
-        return this.planner.planDAG(dag, currentPlan);
+
+        // Reject if too expensive
+        if (newPlan.getCost() > getBudget()) {
+            getCloudsim().log("Rejecting DAG: New plan exceeds budget: "
+                    + newPlan.getCost());
+            return currentPlan;
+        } else {
+            // Plan was feasible, accept it
+            this.admittedDAGs.add(dag);
+            getCloudsim().log("Admitting DAG. Cost of new plan: " + plan.getCost());
+            return newPlan;
+        }
     }
+
+
+    private void allocatePlannedResources(Plan plan) {
+
+        for (Resource r : plan.resources) {
+            // create VM
+            VMType vmType = r.vmtype;
+            VM vm = VMFactory.createVM(vmType, getCloudsim());
+
+            // Build task<->vm mappings
+            LinkedList<Task> vmQueue = new LinkedList<Task>();
+            vmQueues.put(vm, vmQueue);
+            for (Slot slot : r.getSlots()) {
+                Task task = slot.task;
+                this.taskMap.put(task, vm);
+                vmQueue.add(task);
+            }
+
+            // Launch the VM at its appointed time
+            launchVM(vm, r.getStart());
+        }
+    }
+
 
     private void submitDAG(DAG dag) {
         // Wrap into a job which also stores owner ID
