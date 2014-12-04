@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.Collection;
+import java.util.Iterator;
 
 import cws.core.core.VMType;
 import cws.core.dag.Task;
@@ -94,6 +95,19 @@ public class Plan {
         }
 
         return totalPower;
+    }
+
+    /** Remove Resources that are started and terminated at the same
+     * time from the plan
+     */
+    public void cleanUpZeroTimeResources() {
+        Iterator<Resource> it = this.resources.iterator();
+        while (it.hasNext()) {
+            Resource r = it.next();
+            if (Math.abs(r.terminationTime - r.startTime) < 1e-12) {
+                it.remove();
+            }
+        }
     }
 
 

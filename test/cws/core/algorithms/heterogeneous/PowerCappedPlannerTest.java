@@ -145,7 +145,7 @@ public class PowerCappedPlannerTest {
         plan.resources.add(new Resource(vmType, 35.0, 35.0));
         plan.resources.add(new Resource(vmType, 62.0, 62.0 + 1e-14));
 
-        PowerCappedPlanner.cleanUpZeroTimeResources(plan);
+        plan.cleanUpZeroTimeResources();
 
         assertThat("All resources which are turned on and off at the same time are removed.",
                 plan.resources.size(), is(0));
@@ -156,8 +156,7 @@ public class PowerCappedPlannerTest {
         plan2.resources.add(new Resource(vmType, 0.0, 0.1));
         plan2.resources.add(new Resource(vmType));
 
-        PowerCappedPlanner.cleanUpZeroTimeResources(plan2);
-
+        plan2.cleanUpZeroTimeResources();
 
         assertThat("Other resources are left alone.",
                 plan2.resources.size(), is(2));

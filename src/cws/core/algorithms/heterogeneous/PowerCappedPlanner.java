@@ -104,7 +104,7 @@ public class PowerCappedPlanner implements Planner {
         }
 
         // Clean out any Resources that start and stop at the same time
-        cleanUpZeroTimeResources(currentPlan);
+        currentPlan.cleanUpZeroTimeResources();
 
         return currentPlan;
     }
@@ -139,19 +139,6 @@ public class PowerCappedPlanner implements Planner {
         }
 
         plan.resources.addAll(terminatedResources);
-    }
-
-    /** Remove Resources that are started and terminated at the same
-     * time from the plan
-     */
-    public static void cleanUpZeroTimeResources(Plan plan) {
-        Iterator<Resource> it = plan.resources.iterator();
-        while (it.hasNext()) {
-            Resource r = it.next();
-            if (Math.abs(r.terminationTime - r.startTime) < 1e-12) {
-                it.remove();
-            }
-        }
     }
 
     /** The main function of the Planner interface. */
