@@ -1,10 +1,7 @@
 package cws.core.algorithms.heterogeneous;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.matchers.JUnitMatchers.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import org.junit.rules.ExpectedException;
 import org.junit.Rule;
 
@@ -100,13 +97,14 @@ public class TrivialPlannerTest  extends PlannerTestBase {
 
         Plan plan = planner.planDAG(dag, initialPlan);
 
-        assertTrue("No tasks are scheduled before the start time",
-                plan.resources.iterator().next().getStart() >= startTime);
+        assertThat("No tasks are scheduled before the start time",
+                plan.resources.iterator().next().getStart(),
+                greaterThanOrEqualTo(startTime));
     }
+
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
 
     @Test
     public void testWithResourceTerminationTime() throws NoFeasiblePlan {
