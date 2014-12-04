@@ -5,6 +5,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.*;
 import static org.hamcrest.CoreMatchers.*;
+import org.junit.rules.ExpectedException;
+import org.junit.Rule;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -100,5 +102,29 @@ public class TrivialPlannerTest  extends PlannerTestBase {
 
         assertTrue("No tasks are scheduled before the start time",
                 plan.resources.iterator().next().getStart() >= startTime);
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+
+    @Test
+    public void testWithResourceTerminationTime() throws NoFeasiblePlan {
+
+        final double terminationTime = 5.34;
+
+        final DAG dag = makeDiamondDAG();
+
+        final VMType vmtype = VMTypeBuilder.newBuilder().mips(0.1).cores(1)
+                .price(1).build();
+        final Resource r = new Resource(vmtype, 0.0, terminationTime);
+        Plan initialPlan = new Plan();
+        initialPlan.resources.add(r);
+
+        Planner planner = new TrivialPlanner();
+
+        // Check that exception is thrown
+        thrown.expect(NoFeasiblePlan.class);
+        Plan plan = planner.planDAG(dag, initialPlan);
     }
 }

@@ -57,7 +57,15 @@ public class TrivialPlanner implements Planner {
         // Assign tasks to the single VM in the topological order, store
         // assignments in a Plan class.
         for(Task t : order) {
-            currentPlan.schedule(rFastest, t, rFastest.getEndOfSchedule());
+            final double start = rFastest.getEndOfSchedule();
+            final double duration = rFastest.vmtype.getPredictedTaskRuntime(t);
+
+            // If it fits, schedule it
+            if(start + duration > rFastest.terminationTime) {
+                throw new NoFeasiblePlan("Ran out of time before VM terminates");
+            } else {
+                currentPlan.schedule(rFastest, t, start);
+            }
         }
 
         return currentPlan;
