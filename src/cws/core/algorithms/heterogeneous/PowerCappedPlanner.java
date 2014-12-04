@@ -52,22 +52,18 @@ public class PowerCappedPlanner implements Planner {
     final private TreeMap<Double, Double> powerCapsAtTimes;
 
     /** Construct with constant power cap */
-    public PowerCappedPlanner(double constantPowerCap) {
+    public PowerCappedPlanner(double constantPowerCap, Planner planner) {
         this.powerCapsAtTimes = new TreeMap<Double, Double>();
         this.powerCapsAtTimes.put(0.0, constantPowerCap);
-
-        // Hard code this for now
-        this.underlyingPlanner = new HeftPlanner();
+        this.underlyingPlanner = planner;
     }
 
     /** Construct with piecewise constant power cap */
-    public PowerCappedPlanner(TreeMap<Double, Double> powerCapsAtTimes) {
-
-        // Defensive copy
+    public PowerCappedPlanner(
+            TreeMap<Double, Double> powerCapsAtTimes, Planner planner) {
+        // Make Defensive copy
         this.powerCapsAtTimes = new TreeMap<Double, Double>(powerCapsAtTimes);
-
-        // Hard code this for now
-        this.underlyingPlanner = new HeftPlanner();
+        this.underlyingPlanner = planner;
     }
 
     private static <T> T getOne(Collection<T> many) {

@@ -66,7 +66,8 @@ public class PowerCappedPlannerTest {
         Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
 
         final double powerCap = 112; // 2 vms
-        PowerCappedPlanner planner = new PowerCappedPlanner(powerCap);
+        PowerCappedPlanner planner =
+                new PowerCappedPlanner(powerCap, new HeftPlanner());
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
@@ -85,7 +86,8 @@ public class PowerCappedPlannerTest {
 
         TreeMap<Double, Double> powerCapsAtTimes = new TreeMap<>();
         powerCapsAtTimes.put(0.0, 112.0); // 2 vms
-        PowerCappedPlanner planner = new PowerCappedPlanner(powerCapsAtTimes);
+        PowerCappedPlanner planner =
+                new PowerCappedPlanner(powerCapsAtTimes, new HeftPlanner());
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
@@ -108,7 +110,8 @@ public class PowerCappedPlannerTest {
         powerCapsAtTimes.put(10.0, 51.0); // 1 vm
         powerCapsAtTimes.put(20.0, 201.0); // 4 vms
 
-        PowerCappedPlanner planner = new PowerCappedPlanner(powerCapsAtTimes);
+        PowerCappedPlanner planner =
+                new PowerCappedPlanner(powerCapsAtTimes, new HeftPlanner());
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
