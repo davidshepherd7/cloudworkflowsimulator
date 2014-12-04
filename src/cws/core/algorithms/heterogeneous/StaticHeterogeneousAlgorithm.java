@@ -183,6 +183,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
 
             // Launch the VM at its appointed time
             launchVM(vm, r.getStart());
+
+            // We don't actually force the VM to terminate at it's
+            // termination time, instead we allow the VM to be terminated
+            // natuarlly when it runs out of jobs. If the planner has done
+            // its job this should be before the termination time.
         }
     }
 

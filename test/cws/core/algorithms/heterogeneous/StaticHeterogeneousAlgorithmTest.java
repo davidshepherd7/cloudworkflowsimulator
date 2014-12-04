@@ -2,6 +2,9 @@ package cws.core.algorithms.heterogeneous;
 
 
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,6 +76,52 @@ public class StaticHeterogeneousAlgorithmTest {
         // And that the dag was submitted
         verify(cloudsim, times(1)).send(anyInt(), anyInt(),
                 eq(0.0), eq(WorkflowEvent.DAG_SUBMIT), any(DAGJob.class));
+    }
+
+
+    @Test
+    public void testVMStartTime() {
+
+        // Very simple DAG with one task
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 1.0));
+
+        CloudSimWrapper cloudsim = mock(CloudSimWrapper.class);
+
+        VMType vmtype = VMTypeBuilder.newBuilder().mips(1).
+                cores(1).price(1.0)
+                .provisioningTime(new ConstantDistribution(0.0))
+                .deprovisioningTime(new ConstantDistribution(0.0))
+                .build();
+
+        final double startTime = 10;
+        final double stopTime = 20;
+        Plan initialPlan = new Plan();
+        initialPlan.resources.add(new Resource(vmtype, 10, 20));
+
+        // Make algorithm. TrivialPlanner only uses one VM so only add one.
+        StaticHeterogeneousAlgorithm algo = new StaticHeterogeneousAlgorithm.Builder(
+                asList(dag),
+                new TrivialPlanner(),
+                cloudsim)
+                .initialPlan(initialPlan)
+                .build();
+
+        algo.setWorkflowEngine(mock(WorkflowEngine.class));
+        algo.setCloud(mock(Cloud.class));
+        algo.setEnsembleManager(mock(EnsembleManager.class));
+
+        // Create and set up the plan
+        algo.plan();
+
+        // Check that the VM would be started at the right time
+        verify(cloudsim, times(1)).send(anyInt(), anyInt(),
+                doubleThat(greaterThanOrEqualTo(startTime)),
+                eq(WorkflowEvent.VM_LAUNCH), any());
+
+        // Harder to check stop time, would need a full integration test
+        // really... Problem is that the termination signal is sent after
+        // lots of other stuff happens.
     }
 
     // @Test
