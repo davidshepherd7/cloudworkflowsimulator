@@ -5,6 +5,8 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.Rule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -162,5 +164,24 @@ public class PowerCappedPlannerTest {
                 plan2.resources.size(), is(2));
     }
 
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void testThrowIfNotEnoughPowerForAnyResource() throws NoFeasiblePlan {
+
+        // Initial plan over the cap
+        VMType vmType = makeVmType(50);
+        Plan initialPlan = new Plan(asList(vmType));
+
+        PowerCappedPlanner planner = new PowerCappedPlanner(0.1, null);
+
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 10));
+
+        thrown.expect(NoFeasiblePlan.class);
+        planner.planDAG(dag, initialPlan);
+    }
 
 }

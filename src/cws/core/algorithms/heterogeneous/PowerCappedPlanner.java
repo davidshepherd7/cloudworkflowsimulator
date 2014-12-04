@@ -148,6 +148,11 @@ public class PowerCappedPlanner implements Planner {
         // Choose Resources to meet the power cap
         Plan powerCappedPlan = createPowerCappedInitialPlan(currentPlan);
 
+        if(powerCappedPlan.resources.size() == 0) {
+            throw new NoFeasiblePlan(
+                    "Not enough power for any resources, so cannot create a plan");
+        }
+
         // Schedule within these restrictions using some other Planner
         return underlyingPlanner.planDAG(dag, powerCappedPlan);
     }
