@@ -387,6 +387,11 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
             return this;
         }
 
+        public Builder initialPlan(Plan plan) {
+            this.initialPlan = plan;
+            return this;
+        }
+
         public StaticHeterogeneousAlgorithm build() {
 
             this.ensembleStatistics =
