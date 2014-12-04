@@ -126,6 +126,10 @@ public class PowerCappedPlannerTest {
                 plan.powerConsumptionAt(0.0),
                 greaterThan(min(powerCapsAtTimes.values())));
 
+        assertThat("Final power usage is not constrained by min power usage",
+                plan.powerConsumptionAt(30),
+                greaterThan(min(powerCapsAtTimes.values())));
+
     }
 
 }

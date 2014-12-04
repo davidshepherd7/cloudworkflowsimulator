@@ -110,6 +110,13 @@ public class PowerCappedPlanner implements Planner {
             }
 
             currentPlan.resources.addAll(terminatedResources);
+
+            // Spin up VMs until we are near the cap
+            while (currentPlan.powerConsumptionAt(time) <
+                    (powerCap - vmtypeToCreate.powerConsumption)) {
+                currentPlan.resources.add(new Resource(vmtypeToCreate, time));
+            }
+
         }
 
         return currentPlan;
