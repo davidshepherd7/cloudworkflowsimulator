@@ -82,7 +82,7 @@ public class PowerCappedPlanner implements Planner {
         // Check that schedules are empty, since we are killing off VMs
         // this has to happen before any tasks are scheduled
         for (Resource r : currentPlan.resources) {
-            if(r.getSlots().size() != 0) {
+            if (r.getSlots().size() != 0) {
                 throw new RuntimeException("Tried to run with tasks already scheduled");
             }
         }
@@ -90,36 +90,52 @@ public class PowerCappedPlanner implements Planner {
         //??ds Create instances of a random vmtype... for now
         final VMType vmtypeToCreate = getOne(currentPlan.resources).vmtype;
 
-        // For each time that the power cap changes
-        for(final Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
+        // For each time that the power cap changes make sure we are below
+        // it, but not too far below.
+        for (final Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
             final double time = entry.getKey();
             final double powerCap = entry.getValue();
 
-            // Turn off VMs untill we are below the cap
-            Set<Resource> terminatedResources = new HashSet<>();
-            Iterator<Resource> it = currentPlan.resources.iterator();
-            while (it.hasNext() && currentPlan.powerConsumptionAt(time) > powerCap) {
-                Resource r = it.next();
-                // If it is turned on now then replace it with one that is
-                // terminated now (immutable so can't just set the
-                // terminationTime).
-                if (r.isOnAt(time)) {
-                    terminatedResources.add(new Resource(r.vmtype, r.startTime, time));
-                    it.remove();
-                }
-            }
+            // Remove VMs until we get below the power cap
+            removeVMsUntilCap(currentPlan, time, powerCap);
 
-            currentPlan.resources.addAll(terminatedResources);
-
-            // Spin up VMs until we are near the cap
-            while (currentPlan.powerConsumptionAt(time) <
-                    (powerCap - vmtypeToCreate.powerConsumption)) {
-                currentPlan.resources.add(new Resource(vmtypeToCreate, time));
-            }
-
+            // If we are below the cap then add some new VMs if we can
+            addVMsUntilCap(currentPlan, time, powerCap, vmtypeToCreate);
         }
 
+        //??ds Clean out Resources that start and stop at the same time?
+
         return currentPlan;
+    }
+
+    private static void addVMsUntilCap(Plan plan, double time, double powerCap,
+            VMType vmtype) {
+
+        // Add VMs that start now until we are near the cap
+        while (plan.powerConsumptionAt(time) + vmtype.powerConsumption < powerCap) {
+            plan.resources.add(new Resource(vmtype, time));
+        }
+    }
+
+    private static void removeVMsUntilCap(Plan plan, double time, double powerCap) {
+
+        // ??ds this is a bit messy but I'm not sure how else to do it
+
+        // Turn off VMs untill we are below the cap
+        Set<Resource> terminatedResources = new HashSet<>();
+        Iterator<Resource> it = plan.resources.iterator();
+        while (it.hasNext() && plan.powerConsumptionAt(time) > powerCap) {
+            Resource r = it.next();
+            // If it is turned on now then replace it with one that is
+            // terminated now (immutable so can't just set the
+            // terminationTime).
+            if (r.isOnAt(time)) {
+                terminatedResources.add(new Resource(r.vmtype, r.startTime, time));
+                it.remove();
+            }
+        }
+
+        plan.resources.addAll(terminatedResources);
     }
 
     /** The main function of the Planner interface. */

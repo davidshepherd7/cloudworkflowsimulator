@@ -77,7 +77,7 @@ public class PowerCappedPlannerTest {
     }
 
     @Test
-    public void testScheduleBelowConstantTreePowerCap() {
+    public void testScheduleBelowConstantTreeMapPowerCap() {
 
         // Initial plan over the cap
         VMType vmType = makeVmType(50);
@@ -114,7 +114,7 @@ public class PowerCappedPlannerTest {
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
 
         // Check cap for all times
-        for(Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
+        for (Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
             final double time = entry.getKey();
             final double powerCap = entry.getValue();
 
