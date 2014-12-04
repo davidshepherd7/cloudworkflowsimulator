@@ -69,7 +69,7 @@ public class PowerCappedPlannerTest {
 
         final double powerCap = 112; // 2 vms
         PowerCappedPlanner planner =
-                new PowerCappedPlanner(powerCap, new HeftPlanner());
+                new PowerCappedPlanner(powerCap, null);
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
@@ -89,7 +89,7 @@ public class PowerCappedPlannerTest {
         TreeMap<Double, Double> powerCapsAtTimes = new TreeMap<>();
         powerCapsAtTimes.put(0.0, 112.0); // 2 vms
         PowerCappedPlanner planner =
-                new PowerCappedPlanner(powerCapsAtTimes, new HeftPlanner());
+                new PowerCappedPlanner(powerCapsAtTimes, null);
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
@@ -113,7 +113,7 @@ public class PowerCappedPlannerTest {
         powerCapsAtTimes.put(20.0, 201.0); // 4 vms
 
         PowerCappedPlanner planner =
-                new PowerCappedPlanner(powerCapsAtTimes, new HeftPlanner());
+                new PowerCappedPlanner(powerCapsAtTimes, null);
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
@@ -170,7 +170,7 @@ public class PowerCappedPlannerTest {
 
     @Test
     public void testThrowIfNotEnoughPowerForAnyResource() throws NoFeasiblePlan {
-
+        
         // Initial plan over the cap
         VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType));
