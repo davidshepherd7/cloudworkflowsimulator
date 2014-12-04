@@ -2,12 +2,9 @@ package cws.core.algorithms.heterogeneous;
 
 
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import static java.util.Arrays.asList;
+import static java.util.Collections.*;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
@@ -51,20 +49,23 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 public class PowerCappedPlannerTest {
 
-    @Test
-    public void testScheduleBelowConstantPowerCap() {
-
-        VMType vmType = VMTypeBuilder.newBuilder().mips(1.0).
+    VMType makeVmType(double power) {
+        return VMTypeBuilder.newBuilder().mips(1.0).
                 cores(1).price(1.0)
-                .powerConsumptionInWatts(50)
+                .powerConsumptionInWatts(power)
                 .provisioningTime(new ConstantDistribution(0.0))
                 .deprovisioningTime(new ConstantDistribution(0.0))
                 .build();
+    }
+
+    @Test
+    public void testScheduleBelowConstantPowerCap() {
 
         // Initial plan over the cap
+        VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
 
-        final double powerCap = 112;
+        final double powerCap = 112; // 2 vms
         PowerCappedPlanner planner = new PowerCappedPlanner(powerCap);
 
         // Create cut down initial plan and check it
@@ -78,14 +79,8 @@ public class PowerCappedPlannerTest {
     @Test
     public void testScheduleBelowConstantTreePowerCap() {
 
-        VMType vmType = VMTypeBuilder.newBuilder().mips(1.0).
-                cores(1).price(1.0)
-                .powerConsumptionInWatts(50)
-                .provisioningTime(new ConstantDistribution(0.0))
-                .deprovisioningTime(new ConstantDistribution(0.0))
-                .build();
-
         // Initial plan over the cap
+        VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
 
         TreeMap<Double, Double> powerCapsAtTimes = new TreeMap<>();
