@@ -84,6 +84,18 @@ public class Plan {
         throw new RuntimeException("Task not in plan.");
     }
 
+    public double powerConsumptionAt(double time) {
+        double totalPower = 0.0;
+
+        for(Resource r : resources) {
+            if((time >= r.startTime) && (time <= r.terminationTime)) {
+                totalPower += r.vmtype.powerConsumption;
+            }
+        }
+
+        return totalPower;
+    }
+
 
     /** Class to group together the start and duration of a Task in a
      * Plan.
