@@ -216,13 +216,17 @@ public class Plan {
             return schedule.firstKey();
         }
 
-        public double getEnd() {
+        public double getEndOfSchedule() {
             if (schedule.size() == 0) {
-                return 0.0;
+                return startTime;
             }
             double last = schedule.lastKey();
             Slot lastSlot = schedule.get(last);
-            return last + lastSlot.duration + vmtype.getDeprovisioningDelayEstimation();
+            return last + lastSlot.duration;
+        }
+
+        public double getEnd() {
+            return getEndOfSchedule() + vmtype.getDeprovisioningDelayEstimation();
         }
 
 
