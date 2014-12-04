@@ -132,4 +132,33 @@ public class PowerCappedPlannerTest {
 
     }
 
+    @Test
+    public void testRemoveResourcesWhichAreNeverOn() {
+        VMType vmType = VMTypeBuilder.newBuilder().mips(1.0)
+                .cores(1).price(1).build();
+
+        Plan plan = new Plan();
+        plan.resources.add(new Resource(vmType, 0.0, 0.0));
+        plan.resources.add(new Resource(vmType, 35.0, 35.0));
+        plan.resources.add(new Resource(vmType, 62.0, 62.0 + 1e-14));
+
+        PowerCappedPlanner.cleanUpZeroTimeResources(plan);
+
+        assertThat("All resources which are turned on and off at the same time are removed.",
+                plan.resources.size(), is(0));
+
+
+        Plan plan2 = new Plan();
+        plan2.resources.add(new Resource(vmType, 0.0, 0.0));
+        plan2.resources.add(new Resource(vmType, 0.0, 0.1));
+        plan2.resources.add(new Resource(vmType));
+
+        PowerCappedPlanner.cleanUpZeroTimeResources(plan2);
+
+
+        assertThat("Other resources are left alone.",
+                plan2.resources.size(), is(2));
+    }
+
+
 }

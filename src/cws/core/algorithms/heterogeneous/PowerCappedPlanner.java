@@ -103,7 +103,8 @@ public class PowerCappedPlanner implements Planner {
             addVMsUntilCap(currentPlan, time, powerCap, vmtypeToCreate);
         }
 
-        //??ds Clean out Resources that start and stop at the same time?
+        // Clean out any Resources that start and stop at the same time
+        cleanUpZeroTimeResources(currentPlan);
 
         return currentPlan;
     }
@@ -136,6 +137,16 @@ public class PowerCappedPlanner implements Planner {
         }
 
         plan.resources.addAll(terminatedResources);
+    }
+
+    public static void cleanUpZeroTimeResources(Plan plan) {
+        Iterator<Resource> it = plan.resources.iterator();
+        while (it.hasNext()) {
+            Resource r = it.next();
+            if (Math.abs(r.terminationTime - r.startTime) < 1e-12) {
+                it.remove();
+            }
+        }
     }
 
     /** The main function of the Planner interface. */
