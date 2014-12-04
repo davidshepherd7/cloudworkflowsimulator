@@ -67,13 +67,62 @@ public class StaticHeterogeneousAlgorithmTest {
         algo.plan();
 
         // Check that the VM was launched
-        verify(cloudsim, times(1)).send(anyInt(), anyInt(), 
+        verify(cloudsim, times(1)).send(anyInt(), anyInt(),
                 eq(0.0), eq(WorkflowEvent.VM_LAUNCH), any());
 
         // And that the dag was submitted
         verify(cloudsim, times(1)).send(anyInt(), anyInt(),
                 eq(0.0), eq(WorkflowEvent.DAG_SUBMIT), any(DAGJob.class));
     }
+
+    // @Test
+    // public void testVMQueues() {
+    //     // Check that by calling jobFinished, jobReleased we can get all tasks sent to VM,
+    //     // then get the VM terminated.
+
+
+    //     // Very simple DAG
+    //     DAG dag = new DAG();
+    //     dag.addTask(new Task("a", "", 1.0));
+
+    //     CloudSimWrapper cloudsim = mock(CloudSimWrapper.class);
+    //     StaticHeterogeneousAlgorithm algo = makeAlgo(dag, cloudsim);
+
+    //     // Create and set up the plan
+    //     algo.plan();
+
+    //     VM vm = mock(VM.class);
+
+    //     // // Release and finish all jobs
+    //     Job job = mock(Job.class);
+    //     when(job.getVM()).thenReturn(vm);
+    //     when(job.getResult()).thenReturn(Result.SUCCESS);
+    //     // when(job.getDAGJob()).theReturn();
+
+    //     algo.jobReleased(job);
+    //     algo.jobFinished(job);
+
+    //     // Job job2 = mock(Job.class);
+    //     // algo.jobReleased(job2);
+    //     // algo.jobFinished(job2);
+
+    //     // Job job3 = mock(Job.class);
+    //     // algo.jobReleased(job3);
+    //     // algo.jobFinished(job3);
+
+
+    //     // // Check that 3 tasks were sent
+    //     // verify(cloudsim, times(3)).send(anyInt(), anyInt(),
+    //     //         eq(0.0), eq(WorkflowEvent.VM_TERMINATE), any());
+
+    //     // Check that the VM was terminated
+    //     verify(cloudsim, times(1)).send(anyInt(), anyInt(),
+    //             eq(0.0), eq(WorkflowEvent.VM_TERMINATE), any());
+    // }
+
+
+    // ??ds Check that vms are stopped correctly
+
 
     private StaticHeterogeneousAlgorithm makeAlgo(DAG dag, CloudSimWrapper cloudsim) {
 
@@ -82,7 +131,7 @@ public class StaticHeterogeneousAlgorithmTest {
                 .provisioningTime(new ConstantDistribution(0.0))
                 .deprovisioningTime(new ConstantDistribution(0.0))
                 .build();
-        
+
         // Make algorithm. TrivialPlanner only uses one VM so only add one.
         StaticHeterogeneousAlgorithm algo = new StaticHeterogeneousAlgorithm.Builder(
                 asList(dag),
