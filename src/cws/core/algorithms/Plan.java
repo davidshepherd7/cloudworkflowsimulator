@@ -88,7 +88,7 @@ public class Plan {
         double totalPower = 0.0;
 
         for(Resource r : resources) {
-            if((time >= r.startTime) && (time <= r.terminationTime)) {
+            if(r.isOnAt(time)) {
                 totalPower += r.vmtype.powerConsumption;
             }
         }
@@ -127,7 +127,8 @@ public class Plan {
 
         private TreeMap<Double, Slot> schedule;
 
-        // Times to start and stop the VM.
+        // Times to start and stop the VM. More precisely VM is on for time
+        // t \in [startTime, terminationTime).
         final public double startTime;
         final public double terminationTime;
 
@@ -241,6 +242,10 @@ public class Plan {
             return getEndOfSchedule() + vmtype.getDeprovisioningDelayEstimation();
         }
 
+        // times \in [startTime, terminationTime)
+        public boolean isOnAt(double time) {
+            return (time >= startTime) && (time < terminationTime);
+        }
 
 
         public int getFullBillingUnits() {

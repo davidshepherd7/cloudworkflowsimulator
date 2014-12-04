@@ -96,4 +96,36 @@ public class PowerCappedPlannerTest {
     }
 
 
+    @Test
+    public void testScheduleBelowNonConstantPowerCap() {
+
+        // Initial plan over the cap
+        VMType vmType = makeVmType(50);
+        Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
+
+        TreeMap<Double, Double> powerCapsAtTimes = new TreeMap<>();
+        powerCapsAtTimes.put(0.0, 101.0); // 2 vms
+        powerCapsAtTimes.put(10.0, 51.0); // 1 vm
+        powerCapsAtTimes.put(20.0, 201.0); // 4 vms
+
+        PowerCappedPlanner planner = new PowerCappedPlanner(powerCapsAtTimes);
+
+        // Create cut down initial plan and check it
+        Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
+
+        // Check cap for all times
+        for(Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
+            final double time = entry.getKey();
+            final double powerCap = entry.getValue();
+
+            assertThat("Total power is less than cap.",
+                    plan.powerConsumptionAt(time), lessThanOrEqualTo(powerCap));
+        }
+
+        assertThat("Initial power usage is not constrained by min power usage",
+                plan.powerConsumptionAt(0.0),
+                greaterThan(min(powerCapsAtTimes.values())));
+
+    }
+
 }
