@@ -257,7 +257,10 @@ public class Plan {
 
 
         public String toString() {
-            return "Resource(" + vmtype.toString() + ", " + schedule.toString() + ")";
+            return "Resource(" + vmtype.toString()
+                    + ", start time = " + startTime
+                    + ", termination time = " + terminationTime
+                    + ", schedule = " + schedule.toString() + ")";
         }
     }
 
