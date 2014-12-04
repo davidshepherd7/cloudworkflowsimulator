@@ -1,7 +1,8 @@
 package cws.core.algorithms.heterogeneous;
 
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,9 +11,11 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import static java.util.Arrays.asList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.HashSet;
@@ -117,13 +120,6 @@ public class PlannerTestBase {
 
     public void assertAllTasksArePlanned(Plan plan, DAG dag) {
 
-        Set<Task> planned = new HashSet<Task>();
-        for(Resource r : plan.resources) {
-            for(Slot s : r.getSlots()) {
-                planned.add(s.task);
-            }
-        }
-
         // Pull out task list via ordering because it's much easier
         TopologicalOrder order = new TopologicalOrder(dag);
         Set<Task> allTasks = new HashSet<Task>();
@@ -131,12 +127,22 @@ public class PlannerTestBase {
             allTasks.add(t);
         }
 
-        // Comparing this way gives better failure output that
-        // assert(a.equals(b)) etc.
-        assertThat(planned, is(allTasks));
+        assertAllTasksArePlanned(plan, allTasks);
     }
 
+    public void assertAllTasksArePlanned(Plan plan, Collection<Task> tasks) {
 
+        Set<Task> planned = new HashSet<Task>();
+        for(Resource r : plan.resources) {
+            for(Slot s : r.getSlots()) {
+                planned.add(s.task);
+            }
+        }
+
+        // Comparing this way gives better failure output that
+        // assert(a.equals(b)) etc.
+        assertThat(planned, hasItems(tasks.toArray(new Task[0])));
+    }
 
     // Helper code to compare plans
     // ============================================================
