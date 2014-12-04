@@ -40,15 +40,22 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
  * on the electrical power that can be used and so cannot run all VMs for
  * the entire duration of the workflow computation.
  *
- * Allocates up to the allowed amount of VMs, and schedules times when the
- * VMs must be switched off, then calls an underlying Planner to create the
- * plan.
+ * Given a plan containing some VMs (a.k.a. Resources) schedules times when
+ * the VMs must be switched off/on to meet the power cap. Then calls an
+ * underlying Planner to create the final plan.
  *
  * @author David Shepherd
  */
 public class PowerCappedPlanner implements Planner {
 
-    Planner underlyingPlanner;
+    /** The planner that does the real planning once we have decided which
+     * Resources are active at which times */
+    final private Planner underlyingPlanner;
+
+    /** A representation of the piecewise constant power cap. The first
+     * value represents the time of the change in power cap, and the second
+     * value the power cap itself.
+     */
     final private TreeMap<Double, Double> powerCapsAtTimes;
 
     /** Construct with constant power cap */
@@ -66,9 +73,6 @@ public class PowerCappedPlanner implements Planner {
         this.underlyingPlanner = planner;
     }
 
-    private static <T> T getOne(Collection<T> many) {
-        return many.iterator().next();
-    }
 
     /** The function that makes sure we are ok for power. currentPlan
      * contains all the allowed VMs, this function removes or turns off
@@ -84,7 +88,7 @@ public class PowerCappedPlanner implements Planner {
         }
 
         //??ds Create instances of a random vmtype... for now
-        final VMType vmtypeToCreate = getOne(currentPlan.resources).vmtype;
+        final VMType vmtypeToCreate = currentPlan.resources.iterator().next().vmtype;
 
         // For each time that the power cap changes make sure we are below
         // it, but not too far below.
@@ -92,11 +96,11 @@ public class PowerCappedPlanner implements Planner {
             final double time = entry.getKey();
             final double powerCap = entry.getValue();
 
-            // Remove VMs until we get below the power cap
-            removeVMsUntilCap(currentPlan, time, powerCap);
+            // Remove Resources until we get below the power cap
+            removeResourcesUntilCap(currentPlan, time, powerCap);
 
-            // If we are below the cap then add some new VMs if we can
-            addVMsUntilCap(currentPlan, time, powerCap, vmtypeToCreate);
+            // If we are below the cap then add some new Resources if we can
+            addResourcesUntilCap(currentPlan, time, powerCap, vmtypeToCreate);
         }
 
         // Clean out any Resources that start and stop at the same time
@@ -105,20 +109,22 @@ public class PowerCappedPlanner implements Planner {
         return currentPlan;
     }
 
-    private static void addVMsUntilCap(Plan plan, double time, double powerCap,
+
+    private static void addResourcesUntilCap(Plan plan, double time, double powerCap,
             VMType vmtype) {
 
-        // Add VMs that start now until we are near the cap
+        // Add Resources that start now until we are near the cap
         while (plan.powerConsumptionAt(time) + vmtype.powerConsumption < powerCap) {
             plan.resources.add(new Resource(vmtype, time));
         }
     }
 
-    private static void removeVMsUntilCap(Plan plan, double time, double powerCap) {
+
+    private static void removeResourcesUntilCap(Plan plan, double time, double powerCap) {
 
         // ??ds this is a bit messy but I'm not sure how else to do it
 
-        // Turn off VMs untill we are below the cap
+        // Turn off Resources untill we are below the cap
         Set<Resource> terminatedResources = new HashSet<>();
         Iterator<Resource> it = plan.resources.iterator();
         while (it.hasNext() && plan.powerConsumptionAt(time) > powerCap) {
@@ -135,6 +141,9 @@ public class PowerCappedPlanner implements Planner {
         plan.resources.addAll(terminatedResources);
     }
 
+    /** Remove Resources that are started and terminated at the same
+     * time from the plan
+     */
     public static void cleanUpZeroTimeResources(Plan plan) {
         Iterator<Resource> it = plan.resources.iterator();
         while (it.hasNext()) {
@@ -149,10 +158,10 @@ public class PowerCappedPlanner implements Planner {
     @Override
     public Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
 
-        // Cut down to the VMs we can use under the power cap
+        // Choose Resources to meet the power cap
         Plan powerCappedPlan = createPowerCappedInitialPlan(currentPlan);
 
-        // Schedule within these restrictions using something else
+        // Schedule within these restrictions using some other Planner
         return underlyingPlanner.planDAG(dag, powerCappedPlan);
     }
 }
