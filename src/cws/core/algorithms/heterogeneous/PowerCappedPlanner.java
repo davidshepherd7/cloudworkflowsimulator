@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Random;
 
 
@@ -44,25 +45,41 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 public class PowerCappedPlanner implements Planner {
 
     Planner underlyingPlanner;
-    final public double powerCap;
+    final private TreeMap<Double, Double> powerCapsAtTimes;
     
-    public PowerCappedPlanner(double powerCap) {
+    /** Construct with constant power cap */
+    public PowerCappedPlanner(double constantPowerCap) {
+        this.powerCapsAtTimes = new TreeMap<Double, Double>();
+        this.powerCapsAtTimes.put(0.0, constantPowerCap);
 
-        this.powerCap = powerCap;
+        // Hard code this for now
+        this.underlyingPlanner = new HeftPlanner();
+    }
+
+    /** Construct with piecewise constant power cap */
+    public PowerCappedPlanner(TreeMap<Double, Double> powerCapsAtTimes) {
+
+        // Defensive copy
+        this.powerCapsAtTimes = new TreeMap<Double, Double>(powerCapsAtTimes);
 
         // Hard code this for now
         this.underlyingPlanner = new HeftPlanner();
     }
 
     /** The function that makes sure we are ok for power. currentPlan
-     * contains all the allowed VMs, this function removes or turns of some
-     * to reach the power cap. */
+     * contains all the allowed VMs, this function removes or turns off
+     * some to reach the power cap. */
     public Plan createPowerCappedInitialPlan(Plan currentPlan) {
 
-        // Drop VMs till we are below the cap
-        while(currentPlan.powerConsumptionAt(0.0) > powerCap) {
-            Resource VMToKill = currentPlan.resources.iterator().next();
-            currentPlan.resources.remove(VMToKill);
+        for(Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
+            final double time = entry.getKey();
+            final double powerCap = entry.getValue();
+
+            // Turn off VMs till we are below the cap
+            while(currentPlan.powerConsumptionAt(time) > powerCap) {
+                Resource VMToKill = currentPlan.resources.iterator().next();
+                currentPlan.resources.remove(VMToKill);
+            }
         }
 
         return currentPlan;

@@ -69,8 +69,35 @@ public class PowerCappedPlannerTest {
 
         // Create cut down initial plan and check it
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
+
         assertThat("Total power is less than cap.",
-                plan.powerConsumptionAt(0.0), lessThanOrEqualTo(powerCap));
+                plan.powerConsumptionAt(0.1),
+                lessThanOrEqualTo(powerCap));
+    }
+
+    @Test
+    public void testScheduleBelowConstantTreePowerCap() {
+
+        VMType vmType = VMTypeBuilder.newBuilder().mips(1.0).
+                cores(1).price(1.0)
+                .powerConsumptionInWatts(50)
+                .provisioningTime(new ConstantDistribution(0.0))
+                .deprovisioningTime(new ConstantDistribution(0.0))
+                .build();
+
+        // Initial plan over the cap
+        Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
+
+        TreeMap<Double, Double> powerCapsAtTimes = new TreeMap<>();
+        powerCapsAtTimes.put(0.0, 112.0); // 2 vms
+        PowerCappedPlanner planner = new PowerCappedPlanner(powerCapsAtTimes);
+
+        // Create cut down initial plan and check it
+        Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
+
+        assertThat("Total power is less than cap.",
+                plan.powerConsumptionAt(0.0),
+                lessThanOrEqualTo(powerCapsAtTimes.get(0.0)));
     }
 
 
