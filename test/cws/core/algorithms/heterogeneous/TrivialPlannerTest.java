@@ -81,4 +81,24 @@ public class TrivialPlannerTest  extends PlannerTestBase {
         assertAllTasksArePlanned(plan, asList(initialTask));
     }
 
+
+    @Test
+    public void testWithResourceStartTime() throws NoFeasiblePlan {
+
+        final double startTime = 5.34;
+
+        final DAG dag = makeDiamondDAG();
+
+        final VMType vmtype = VMTypeBuilder.newBuilder().mips(20).cores(1).price(1).build();
+        final Resource r = new Resource(vmtype, startTime);
+        Plan initialPlan = new Plan();
+        initialPlan.resources.add(r);
+
+        Planner planner = new TrivialPlanner();
+
+        Plan plan = planner.planDAG(dag, initialPlan);
+
+        assertTrue("No tasks are scheduled before the start time",
+                plan.resources.iterator().next().getStart() >= startTime);
+    }
 }
