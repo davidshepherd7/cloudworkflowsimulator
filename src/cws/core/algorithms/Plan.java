@@ -252,6 +252,21 @@ public class Plan {
             return last + lastSlot.duration;
         }
 
+        /** Check for any times when Slots are overlapping */
+        public List<Slot> findOverlapingSlots() {
+            List<Slot> overlapSlots = new ArrayList<>();
+
+            double prevFinishTime = 0.0;
+            for (Slot s : getSlots()) {
+                if (s.start < prevFinishTime) {
+                    overlapSlots.add(s);
+                }
+                prevFinishTime = s.start + s.duration;
+            }
+
+            return overlapSlots;
+        }
+
         public double getEnd() {
             return getEndOfSchedule() + vmtype.getDeprovisioningDelayEstimation();
         }
