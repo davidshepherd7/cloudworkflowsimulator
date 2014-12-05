@@ -151,7 +151,7 @@ public class HeftPlanner implements Planner {
 
                 // Compute times
                 final double duration = r.vmtype.getPredictedTaskRuntime(t);
-                final double resourceStartTime = Math.max(r.findFirstGap(duration),
+                final double resourceStartTime = r.findFirstGap(duration,
                         lastParentFinishTime);
                 final double resourceFinishTime = resourceStartTime + duration;
 

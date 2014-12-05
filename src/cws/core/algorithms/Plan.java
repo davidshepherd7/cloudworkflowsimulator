@@ -10,6 +10,8 @@ import java.util.TreeMap;
 import java.util.Collection;
 import java.util.Iterator;
 
+import static java.lang.Math.*;
+
 import cws.core.core.VMType;
 import cws.core.dag.Task;
 
@@ -203,33 +205,46 @@ public class Plan {
          * available. Trys both before all slots have started and after all
          * slots have finished, as well as in between all scheduled slots.
          */
-        public Double findFirstGap(double desiredGapDuration) {
+        public Double findFirstGap(double desiredGapDuration,
+                double desiredStartTime) {
+
+            // The earliest we can start is after this resource is started
+            // and after the desired start time.
+            final double earliestStartTime = max(this.startTime, desiredStartTime);
+
+            // If it's empty then this is easy
+            if (schedule.size() == 0) {
+                return earliestStartTime;
+            }
 
             // Try to fit it in before any of the slots start.
-            if (schedule.size() == 0 ||
-                    (schedule.firstKey() - startTime) > desiredGapDuration) {
-                return startTime;
+            if ((schedule.firstKey() - earliestStartTime) > desiredGapDuration) {
+                return earliestStartTime;
             }
 
             // Try to fit in between all the other pairs of slots
             for (final Slot s : getSlots()) {
-                final double finishTime = s.start + s.duration;
+                final double slotFinishTime = s.start + s.duration;
+                final double estSlot = max(slotFinishTime, desiredStartTime);
 
                 // Get the start time of the next slot, null if there is no
-                // next slot.
+                // next slot. If it's null then skip it (there is no next
+                // slot, so this case is handled later).
                 final Double nextStart = schedule.higherKey(s.start);
+                if (nextStart == null) continue;
 
-                if(nextStart != null
-                        && (nextStart - finishTime) > desiredGapDuration) {
-                    return finishTime;
+                // Otherwise if there is time then pick this gap
+                if ((nextStart - estSlot) > desiredGapDuration) {
+                    return estSlot;
                 }
             }
 
             // Finally try to fit it in at the end
             final double startOfLast = schedule.lastKey();
             final double endOfLast = startOfLast + schedule.get(startOfLast).duration;
-            if ((terminationTime - endOfLast) > desiredGapDuration) {
-                return endOfLast;
+            final double estLast = max(endOfLast, desiredStartTime);
+            if ((terminationTime - estLast) > desiredGapDuration) {
+                return estLast;
             } else {
                 // We failed, no slots available
                 return null;
