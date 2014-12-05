@@ -116,6 +116,12 @@ public class PlannerTestBase {
         return dag;
     }
 
+    public DAG makeSingleTaskDAG() {
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 1));
+
+        return dag;
+    }
 
     public void assertAllTasksArePlanned(Plan plan, DAG dag) {
 
