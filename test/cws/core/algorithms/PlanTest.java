@@ -129,5 +129,12 @@ public class PlanTest {
         assertThat(r.findFirstGap(5, 0.0), nullValue());
     }
 
+    @Test
+    public void testNoGapWithOneTask() {
+        Resource r = new Resource(makeVM(), 0.0, 6.0);
+        r.addToSchedule(new Slot(new Task("a", "", 1.0), 3.0, 1.0));
+
+        assertThat(r.findFirstGap(5, 0.0), nullValue());
+    }
 
 }
