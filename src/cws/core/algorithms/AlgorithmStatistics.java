@@ -124,23 +124,23 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
             cost += vm.getCost();
         }
         return cost;
-    };
+    }
 
     public double getLastDagFinishTime() {
         return lastDagFinishTime;
-    };
+    }
 
     public double getLastJobFinishTime() {
         return lastJobFinishTime;
-    };
+    }
 
     public double getLastVMFinishTime() {
         return lastVmFinishTime;
-    };
+    }
 
     public List<DAG> getFinishedDags() {
         return finishedDagsWithinBudgetAndDeadline;
-    };
+    }
 
     @Override
     public void jobFinished(Job job) {
