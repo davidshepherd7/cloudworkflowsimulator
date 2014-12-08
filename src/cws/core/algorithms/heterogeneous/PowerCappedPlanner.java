@@ -87,8 +87,15 @@ public class PowerCappedPlanner implements Planner {
             }
         }
 
-        //??ds Create instances of a random vmtype... for now
+        // ??ds Create instances of the first vmtype... for now. Check that
+        // all vmtypes are the same to avoid confusion in the future.
         final VMType vmtypeToCreate = currentPlan.resources.iterator().next().vmtype;
+        for (Resource r : currentPlan.resources ) {
+            if (!r.vmtype.equals(vmtypeToCreate)) {
+                throw new RuntimeException("VMTypes in the plan vary, this is "
+                        + "currently ignored by PowerCappedPlanner");
+            }
+        }
 
         // For each time that the power cap changes make sure we are below
         // it, but not too far below.
