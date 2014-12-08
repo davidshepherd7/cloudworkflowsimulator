@@ -182,10 +182,24 @@ public class VMTypeLoader {
         options.addOption(deprovisioningDelayValue);
     }
 
+    /** Read vm type settings from a file specified within a command line,
+     * then override the settings with anything specified by the command line.
+     */
     public VMType determineVMType(CommandLine args) throws IllegalCWSArgumentException {
         Map<String, Object> vmConfig = tryLoadVMFromConfigFile(args);
         overrideConfigFromFileWithCliArgs(vmConfig, args);
         return loadVM(vmConfig);
+    }
+
+    /** Read vm type settings from a file without allowing cli arguments to
+     * override settings.
+     */
+    @SuppressWarnings("unchecked")
+    public VMType determineVMTypeFromFile(String filename) throws FileNotFoundException {
+        InputStream input = new FileInputStream(new File(filename));
+        Yaml yaml = new Yaml();
+        Map<String, Object> config = (Map<String, Object>) yaml.load(input);
+        return this.loadVM(config);
     }
 
     private Map<String, Object> tryLoadVMFromConfigFile(CommandLine args) {
