@@ -44,6 +44,9 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
  * the VMs must be switched off/on to meet the power cap. Then calls an
  * underlying Planner to create the final plan.
  *
+ * Note that use of this class does not *enforce* the power cap, i.e. if
+ * tasks overrun it is possible that the power cap could be violated.
+ *
  * @author David Shepherd
  */
 public class PowerCappedPlanner implements Planner {
@@ -52,24 +55,22 @@ public class PowerCappedPlanner implements Planner {
      * Resources are active at which times */
     final private Planner underlyingPlanner;
 
-    /** A representation of the piecewise constant power cap. The first
-     * value represents the time of the change in power cap, and the second
-     * value the power cap itself.
+    /** A representation of the piecewise constant power cap.
      */
-    final private TreeMap<Double, Double> powerCapsAtTimes;
+    final private PiecewiseConstantFunction powerCap;
 
     /** Construct with constant power cap */
     public PowerCappedPlanner(double constantPowerCap, Planner planner) {
-        this.powerCapsAtTimes = new TreeMap<Double, Double>();
-        this.powerCapsAtTimes.put(0.0, constantPowerCap);
+        this.powerCap = new PiecewiseConstantFunction();
+        this.powerCap.addJump(0.0, constantPowerCap);
         this.underlyingPlanner = planner;
     }
 
     /** Construct with piecewise constant power cap */
-    public PowerCappedPlanner(
-            TreeMap<Double, Double> powerCapsAtTimes, Planner planner) {
+    public PowerCappedPlanner(PiecewiseConstantFunction powerCap,
+            Planner planner) {
         // Make Defensive copy
-        this.powerCapsAtTimes = new TreeMap<Double, Double>(powerCapsAtTimes);
+        this.powerCap = new PiecewiseConstantFunction(powerCap);
         this.underlyingPlanner = planner;
     }
 
@@ -99,7 +100,7 @@ public class PowerCappedPlanner implements Planner {
 
         // For each time that the power cap changes make sure we are below
         // it, but not too far below.
-        for (final Map.Entry<Double, Double> entry : powerCapsAtTimes.entrySet()) {
+        for (final Map.Entry<Double, Double> entry : powerCap) {
             final double time = entry.getKey();
             final double powerCap = entry.getValue();
 
