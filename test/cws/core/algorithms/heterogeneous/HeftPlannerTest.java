@@ -5,7 +5,8 @@ import static org.hamcrest.Matchers.*;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.junit.rules.ExpectedException;
+import org.junit.Rule;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -225,6 +226,31 @@ public class HeftPlannerTest extends PlannerTestBase {
 
         assertAllTasksArePlanned(actual, dag);
         assertNoTasksOverlap(actual);
+    }
+
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void testHandleImpossiblePlan() throws NoFeasiblePlan {
+
+        final double terminationTime = 5.34;
+
+        final DAG dag = makeSingleTaskDAG();
+
+        // VM is too slow to finish in time, so that the task is impossible
+        final VMType vmtype = VMTypeBuilder.newBuilder().mips(0.1).cores(1)
+                .price(1).build();
+        final Resource r = new Resource(vmtype, 0.0, terminationTime);
+        Plan initialPlan = new Plan();
+        initialPlan.resources.add(r);
+
+        Planner planner = new HeftPlanner();
+
+        // Check that exception is thrown
+        thrown.expect(NoFeasiblePlan.class);
+        Plan plan = planner.planDAG(dag, initialPlan);
     }
 
 }

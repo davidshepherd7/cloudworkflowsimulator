@@ -169,7 +169,11 @@ public class HeftPlanner implements Planner {
                 }
             }
 
-            bestSolution.addToPlan(plan);
+            if (bestSolution == null) {
+                throw new NoFeasiblePlan("Could not find any solution.");
+            } else {
+                bestSolution.addToPlan(plan);
+            }
         }
 
         return plan;
