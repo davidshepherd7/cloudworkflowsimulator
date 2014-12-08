@@ -201,4 +201,30 @@ public class HeftPlannerTest extends PlannerTestBase {
         assertSamePlans(actual, expected);
     }
 
+    @Test
+    public void testWithResourceTermination() throws NoFeasiblePlan {
+
+        final double terminationTime = 5.34;
+
+        final DAG dag = makeTasks();
+
+        final VMType vmtype = VMTypeBuilder.newBuilder().mips(1).cores(1)
+                .price(1).build();
+        final Resource r1 = new Resource(vmtype, 0.0, terminationTime);
+        final Resource r2 = new Resource(vmtype, terminationTime);
+        Plan initialPlan = new Plan();
+        initialPlan.resources.add(r1);
+        initialPlan.resources.add(r2);
+
+        // Check it
+        Planner planner = new HeftPlanner();
+        Plan actual = planner.planDAG(dag, initialPlan);
+
+        // Scheduling outside of start/termination time will throw
+        // exceptions so no need to assert that.
+
+        assertAllTasksArePlanned(actual, dag);
+        assertNoTasksOverlap(actual);
+    }
+
 }

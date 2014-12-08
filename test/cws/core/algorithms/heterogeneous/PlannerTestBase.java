@@ -149,6 +149,12 @@ public class PlannerTestBase {
         assertThat(planned, hasItems(tasks.toArray(new Task[0])));
     }
 
+    public void assertNoTasksOverlap(Plan plan) {
+        for (Resource r : plan.resources) {
+            assertThat(r.findOverlapingSlots(), empty());
+        }
+    }
+
     // Helper code to compare plans
     // ============================================================
 

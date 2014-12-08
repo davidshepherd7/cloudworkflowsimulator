@@ -151,17 +151,21 @@ public class HeftPlanner implements Planner {
 
                 // Compute times
                 final double duration = r.vmtype.getPredictedTaskRuntime(t);
-                final double resourceStartTime = r.findFirstGap(duration,
+                final Double resourceStartTime = r.findFirstGap(duration,
                         lastParentFinishTime);
-                final double resourceFinishTime = resourceStartTime + duration;
 
-                // If it's better then store it as the new best solution
-                if (resourceFinishTime < earliestFinishTime) {
-                    bestSolution = new Solution(r,
-                            new Slot(t, resourceStartTime, duration),
-                            r.vmtype.getVMCostFor(duration),
-                            false);
-                    earliestFinishTime = resourceFinishTime;
+                // If we found a free slot then check if it's better, and
+                // if it is store this solution in bestSolution.
+                if (resourceStartTime != null) {
+
+                    final double resourceFinishTime = resourceStartTime + duration;
+                    if (resourceFinishTime < earliestFinishTime) {
+                        bestSolution = new Solution(r,
+                                new Slot(t, resourceStartTime, duration),
+                                r.vmtype.getVMCostFor(duration),
+                                false);
+                        earliestFinishTime = resourceFinishTime;
+                    }
                 }
             }
 
