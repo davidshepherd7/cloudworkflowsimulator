@@ -62,6 +62,7 @@
           description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" classpathref="build.classpath"
+           debug="true"
            includeantruntime="false"/>
   </target>
 
@@ -81,11 +82,13 @@
     <javac srcdir="${test.dir}"
            destdir="${testbuild}"
            classpathref="testbuild.classpath"
+           debug="true"
            includeantruntime="false" />
 
     <javac srcdir="integration_test"
            destdir="${testbuild}"
            classpathref="testbuild.classpath"
+           debug="true"
            includeantruntime="false" />
   </target>
 
