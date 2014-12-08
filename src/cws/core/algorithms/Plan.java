@@ -184,11 +184,17 @@ public class Plan {
             // Check that the slot is within the times that the VM is active
             if(slot.start < startTime) {
                 throw new RuntimeException(
-                        "Tried to schedule a task before VM will be ready");
+                        "Tried to schedule a task before VM will be ready.\n"
+                        + "Slot is: " + slot.toString()
+                        + " but the VM starts at time "
+                        + Double.toString(startTime));
             }
             if(slot.start + slot.duration > terminationTime) {
                 throw new RuntimeException(
-                        "Tried to schedule a task after VM will be terminated");
+                        "Tried to schedule a task that will not finish before VM will be terminated.\n"
+                        + "Slot is: " + slot.toString()
+                        + " but the VM terminates at time "
+                        + Double.toString(terminationTime));
             }
 
             // Schedule it
