@@ -123,4 +123,11 @@ public class PlanTest {
         assertThat(r.findOverlapingSlots(), empty());
     }
 
+    @Test
+    public void testNoGapWithNoTasks() {
+        Resource r = new Resource(makeVM(), 0.0, 1.0);
+        assertThat(r.findFirstGap(5, 0.0), nullValue());
+    }
+
+
 }

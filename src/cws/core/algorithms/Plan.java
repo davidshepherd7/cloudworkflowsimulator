@@ -218,9 +218,14 @@ public class Plan {
             // and after the desired start time.
             final double earliestStartTime = max(this.startTime, desiredStartTime);
 
-            // If it's empty then this is easy
+            // If it's empty then just need to check that we can finish
+            // before the resource is terminated.
             if (schedule.size() == 0) {
-                return earliestStartTime;
+                if ((this.terminationTime - earliestStartTime) > desiredGapDuration) {
+                    return earliestStartTime;
+                } else {
+                    return null;
+                }
             }
 
             // Try to fit it in before any of the slots start.
