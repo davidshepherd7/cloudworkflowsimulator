@@ -49,7 +49,7 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
      * The total power consumption of the VMs as a function of time
      */
     private PiecewiseConstantFunction powerUsed =
-            new PiecewiseConstantFunction(0.0, 0.0);
+            new PiecewiseConstantFunction(0.0);
 
     @Override
     public void shutdownEntity() {

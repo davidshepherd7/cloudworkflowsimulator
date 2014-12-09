@@ -22,7 +22,7 @@ public class PiecewiseConstantFunctionTest  {
 
     @Test
     public void testGetValueAtJumpTime() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
         p.addJump(2.0, 2.0);
 
@@ -31,7 +31,7 @@ public class PiecewiseConstantFunctionTest  {
 
     @Test
     public void testGetValueBetweenJumpTimes() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
         p.addJump(2.0, 2.0);
 
@@ -40,7 +40,7 @@ public class PiecewiseConstantFunctionTest  {
 
     @Test
     public void testGetValueAfterAnyTimes() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
         p.addJump(2.0, 2.0);
 
@@ -48,22 +48,18 @@ public class PiecewiseConstantFunctionTest  {
     }
 
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Test
     public void testGetValueBeforeAnyTimes() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(7.5);
         p.addJump(0.5, 0.1);
         p.addJump(2.0, 2.0);
 
-        thrown.expect(NoSuchElementException.class);
-        p.getValue(0.0);
+        assertThat(p.getValue(0.0), is(7.5));
     }
 
     @Test
     public void testIntegralWithEndpointsAtJumps() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
         p.addJump(2.0, 2.0);
         p.addJump(3.0, 3.0);
@@ -74,7 +70,7 @@ public class PiecewiseConstantFunctionTest  {
 
     @Test
     public void testIntegralWithEndpointsBetweenJumps() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
         p.addJump(2.0, 2.0);
         p.addJump(3.0, 3.0);
@@ -84,10 +80,18 @@ public class PiecewiseConstantFunctionTest  {
 
     @Test
     public void testIntegralWithEndpointsAfterAllJumps() {
-        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(0.0);
         p.addJump(0.0, 0.1);
 
         assertThat(p.integral(0.0, 2.0), is(0.1*2.0));
+    }
+
+    @Test
+    public void testIntegralWithEndpointsBeforeAllJumps() {
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction(6.0);
+        p.addJump(1.0, 0.5);
+
+        assertThat(p.integral(-0.5, 2.0), is(6.0*1.5 + 1.0*0.5));
     }
 
 }

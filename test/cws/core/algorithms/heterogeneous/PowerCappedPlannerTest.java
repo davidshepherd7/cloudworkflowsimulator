@@ -86,7 +86,7 @@ public class PowerCappedPlannerTest {
         VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
 
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
         powerCap.addJump(0.0, 112.0); // 2 vms
         PowerCappedPlanner planner =
                 new PowerCappedPlanner(powerCap, null);
@@ -107,7 +107,7 @@ public class PowerCappedPlannerTest {
         VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType, vmType, vmType));
 
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction();
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
         powerCap.addJump(0.0, 101.0); // 2 vms
         powerCap.addJump(10.0, 51.0); // 1 vm
         powerCap.addJump(20.0, 201.0); // 4 vms

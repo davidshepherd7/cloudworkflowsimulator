@@ -23,28 +23,27 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
     /** Storage for the map from jump times to values */
     private TreeMap<Double, Double> jumpTimesAndValues;
 
+    private double initialValue = 0.0;
+
     public PiecewiseConstantFunction(PiecewiseConstantFunction other) {
-        this(other.jumpTimesAndValues);
+        this(other.initialValue, other.jumpTimesAndValues);
     }
 
-    public PiecewiseConstantFunction(TreeMap<Double, Double> jumpTimesAndValues) {
+    public PiecewiseConstantFunction(double initialValue,
+            TreeMap<Double, Double> jumpTimesAndValues) {
+        this.initialValue = initialValue;
         this.jumpTimesAndValues = new TreeMap<>(jumpTimesAndValues);
     }
 
-    public PiecewiseConstantFunction() {
-        this(new TreeMap<Double, Double>());
-    }
-
-    public PiecewiseConstantFunction(double initialTime, double initialValue) {
-        this();
-        this.addJump(initialTime, initialValue);
+    public PiecewiseConstantFunction(double initialValue) {
+        this(initialValue, new TreeMap<Double, Double>());
     }
 
     /** Evaluate the function */
     public double getValue(double time) {
         Map.Entry<Double, Double> entry = jumpTimesAndValues.floorEntry(time);
         if (entry == null) {
-            throw new NoSuchElementException();
+            return this.initialValue;
         } else {
             return entry.getValue();
         }
@@ -102,4 +101,8 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         return total;
     }
 
+    // public PiecewiseConstantFunction difference(PiecewiseConstantFunction other) {
+        
+        
+    // } 
 }

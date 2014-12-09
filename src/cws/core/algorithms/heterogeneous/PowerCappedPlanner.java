@@ -61,7 +61,7 @@ public class PowerCappedPlanner implements Planner {
 
     /** Construct with constant power cap */
     public PowerCappedPlanner(double constantPowerCap, Planner planner) {
-        this.powerCap = new PiecewiseConstantFunction();
+        this.powerCap = new PiecewiseConstantFunction(0.0);
         this.powerCap.addJump(0.0, constantPowerCap);
         this.underlyingPlanner = planner;
     }
