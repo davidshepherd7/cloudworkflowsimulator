@@ -60,7 +60,34 @@ public class PiecewiseConstantFunctionTest  {
         thrown.expect(NoSuchElementException.class);
         p.getValue(0.0);
     }
-    
-}
 
-                
+    @Test
+    public void testIntegralWithEndpointsAtJumps() {
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        p.addJump(0.0, 0.1);
+        p.addJump(2.0, 2.0);
+        p.addJump(3.0, 3.0);
+
+
+        assertThat(p.integral(0.0, 3.0), is(0.1*2.0 + 1.0*2.0));
+    }
+
+    @Test
+    public void testIntegralWithEndpointsBetweenJumps() {
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        p.addJump(0.0, 0.1);
+        p.addJump(2.0, 2.0);
+        p.addJump(3.0, 3.0);
+
+        assertThat(p.integral(0.5, 2.5), is(0.1*1.5 + 2.0*0.5));
+    }
+
+    @Test
+    public void testIntegralWithEndpointsAfterAllJumps() {
+        PiecewiseConstantFunction p = new PiecewiseConstantFunction();
+        p.addJump(0.0, 0.1);
+
+        assertThat(p.integral(0.0, 2.0), is(0.1*2.0));
+    }
+
+}

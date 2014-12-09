@@ -2,6 +2,7 @@ package cws.core.algorithms.heterogeneous;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.NavigableMap;
 import java.util.Iterator;
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -68,6 +69,37 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
     @Override
     public String toString() {
         return jumpTimesAndValues.toString();
+    }
+
+    /** Helper function. Replace by
+     * com.google.common.base.Objects.firstNonNull or
+     * com.google.common.base.Optional when possible.
+     */
+    private<T> T firstNonNull(T a, T b) {
+        if (a != null)return a;
+        else if (b != null) return b;
+        else throw new NullPointerException();
+    }
+
+    public double integral(double a, double b) {
+        // Start with the integral between a and the first key greater than a
+        double total = this.getValue(a) * (jumpTimesAndValues.ceilingKey(a) - a);
+
+        // Get the map containing only the jumps for times greater than (or
+        // equal) a and less than (or equal) b.
+        NavigableMap<Double, Double> subMap = jumpTimesAndValues
+                .tailMap(a, true)
+                .headMap(b, true);
+
+        // Add the integral over each of the intervals following these
+        // jumps.
+        for (Map.Entry<Double, Double> e : subMap.entrySet()) {
+            final double intervalStart = e.getKey();
+            final Double intervalEnd = firstNonNull(subMap.higherKey(e.getKey()), b);
+            total += e.getValue() * (intervalEnd - intervalStart);
+        }
+
+        return total;
     }
 
 }
