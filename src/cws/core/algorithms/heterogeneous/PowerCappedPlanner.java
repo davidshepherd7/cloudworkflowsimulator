@@ -100,7 +100,7 @@ public class PowerCappedPlanner implements Planner {
 
         // For each time that the power cap changes make sure we are below
         // it, but not too far below.
-        for (final Map.Entry<Double, Double> entry : powerCap) {
+        for (final Map.Entry<Double, Double> entry : powerCap.jumps()) {
             final double time = entry.getKey();
             final double powerCap = entry.getValue();
 

@@ -119,7 +119,7 @@ public class PowerCappedPlannerTest {
         Plan plan = planner.createPowerCappedInitialPlan(initialPlan);
 
         // Check cap for all times
-        for (Map.Entry<Double, Double> entry : powerCap) {
+        for (Map.Entry<Double, Double> entry : powerCap.jumps()) {
             final double time = entry.getKey();
             final double powerCapValue = entry.getValue();
 
@@ -129,11 +129,11 @@ public class PowerCappedPlannerTest {
 
         assertThat("Initial power usage is not constrained by min power usage",
                 plan.powerConsumptionAt(0.0),
-                greaterThan(min(powerCap.values())));
+                greaterThan(min(powerCap.jumpValues())));
 
         assertThat("Final power usage is not constrained by min power usage",
                 plan.powerConsumptionAt(30),
-                greaterThan(min(powerCap.values())));
+                greaterThan(min(powerCap.jumpValues())));
 
     }
 

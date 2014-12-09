@@ -23,7 +23,7 @@ import static java.lang.Math.sqrt;
  *
  * @author David Shepherd
  */
-public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Double>> {
+public class PiecewiseConstantFunction {
 
     /** Storage for the map from jump times to values */
     private TreeMap<Double, Double> jumpTimesAndValues;
@@ -44,6 +44,11 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         this(initialValue, new TreeMap<Double, Double>());
     }
 
+    /** Get the value of the function at t=-inf. */
+    public double getInitialValue() {
+        return initialValue;
+    }
+
     /** Evaluate the function */
     public double getValue(double time) {
         Map.Entry<Double, Double> entry = jumpTimesAndValues.floorEntry(time);
@@ -59,22 +64,21 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         jumpTimesAndValues.put(time, value);
     }
 
-    /** Iterate over the values */
-    public Collection<Double> values() {
-        return unmodifiableCollection(jumpTimesAndValues.values());
+    /** Iterate over the jump times and values */
+    public Collection<Map.Entry<Double, Double>> jumps() {
+        return unmodifiableCollection(jumpTimesAndValues.entrySet());
     }
 
-    /** Iterate over the values */
+    /** Iterate over the jump times */
     public Collection<Double> jumpTimes() {
         return unmodifiableCollection(jumpTimesAndValues.keySet());
     }
 
-    /** Iterate over jump times and values */
-    @Override
-    public Iterator<Map.Entry<Double, Double>> iterator() {
-        return unmodifiableCollection(jumpTimesAndValues.entrySet()).iterator();
+    /** Iterate over the jump values */
+    public Collection<Double> jumpValues() {
+        return unmodifiableCollection(jumpTimesAndValues.values());
     }
-
+    
     @Override
     public String toString() {
         return "initial=" + initialValue
@@ -120,11 +124,11 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         // value. But we don't have function types in Java7 (afaik) so we
         // can't....
 
-        final double initial = pow(this.getValue(-Double.MAX_VALUE), 2);
+        final double initial = pow(this.getInitialValue(), 2);
 
         PiecewiseConstantFunction newF = new PiecewiseConstantFunction(initial);
 
-        for (final Map.Entry<Double, Double> e : this) {
+        for (final Map.Entry<Double, Double> e : this.jumps()) {
             newF.addJump(e.getKey(), pow(e.getValue(), 2));
         }
 
@@ -134,8 +138,7 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
 
     /** Return a new function which is h(t) = this(t) - other(t) */
     public PiecewiseConstantFunction minus(PiecewiseConstantFunction other) {
-        final double initial = this.getValue(-Double.MAX_VALUE)
-                - other.getValue(-Double.MAX_VALUE);
+        final double initial = this.getInitialValue() - other.getInitialValue();
         PiecewiseConstantFunction newF = new PiecewiseConstantFunction(initial);
 
         Set<Double> allJumps = new HashSet<>(this.jumpTimes());
