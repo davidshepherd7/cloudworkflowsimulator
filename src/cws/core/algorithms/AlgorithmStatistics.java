@@ -17,6 +17,8 @@ import cws.core.jobs.Job;
 import cws.core.jobs.Job.Result;
 import cws.core.jobs.JobListener;
 
+import cws.core.algorithms.heterogeneous.PiecewiseConstantFunction;
+
 public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener, VMListener, JobListener {
     private final List<DAG> allDags;
     private final double budget;
@@ -42,6 +44,12 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
      * All VMs that were ever created in the simulation.
      */
     private List<VM> allVMs = new ArrayList<VM>();
+
+    /**
+     * The total power consumption of the VMs as a function of time
+     */
+    private PiecewiseConstantFunction powerUsed =
+            new PiecewiseConstantFunction(0.0, 0.0);
 
     @Override
     public void shutdownEntity() {
@@ -126,6 +134,10 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
         return cost;
     }
 
+    public PiecewiseConstantFunction getPowerUsage() {
+        return powerUsed;
+    }
+
     public double getLastDagFinishTime() {
         return lastDagFinishTime;
     }
@@ -152,11 +164,19 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
     @Override
     public void vmLaunched(VM vm) {
         this.allVMs.add(vm);
+
+        double simTime = getCloudsim().clock();
+        double oldPower = this.powerUsed.getValue(simTime);
+        this.powerUsed.addJump(simTime, oldPower + vm.getVmType().powerConsumption);
     }
 
     @Override
     public void vmTerminated(VM vm) {
         lastVmFinishTime = Math.max(lastVmFinishTime, getCloudsim().clock());
+
+        double simTime = getCloudsim().clock();
+        double oldPower = this.powerUsed.getValue(simTime);
+        this.powerUsed.addJump(simTime, oldPower - vm.getVmType().powerConsumption);
     }
 
     @Override
