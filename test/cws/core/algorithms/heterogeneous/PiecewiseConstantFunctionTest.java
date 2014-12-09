@@ -94,4 +94,37 @@ public class PiecewiseConstantFunctionTest  {
         assertThat(p.integral(-0.5, 2.0), is(6.0*1.5 + 1.0*0.5));
     }
 
+
+    @Test
+    public void testMinusJumpsAtDifferentTimes() {
+        PiecewiseConstantFunction p1 = new PiecewiseConstantFunction(0.0);
+        p1.addJump(1.0, 0.5);
+
+        PiecewiseConstantFunction p2 = new PiecewiseConstantFunction(0.0);
+        p2.addJump(2.0, 0.5);
+
+        PiecewiseConstantFunction expected = new PiecewiseConstantFunction(0.0);
+        expected.addJump(1.0, 0.5);
+        expected.addJump(2.0, 0.0);
+
+        // Shouldn't really compare using string representation, but since
+        // we aren't allowed to overload == without messing with hash
+        // functions (and we can't use a hash function of the map because
+        // it's mutable) I'm not sure what else to do.
+        assertThat(p1.minus(p2).toString(), is(expected.toString()));
+    }
+
+    @Test
+    public void testMinusJumpsAtSameTime() {
+        PiecewiseConstantFunction p1 = new PiecewiseConstantFunction(0.0);
+        p1.addJump(1.0, 1.0);
+
+        PiecewiseConstantFunction p2 = new PiecewiseConstantFunction(0.0);
+        p2.addJump(1.0, 0.5);
+
+        PiecewiseConstantFunction expected = new PiecewiseConstantFunction(0.0);
+        expected.addJump(1.0, 0.5);
+
+        assertThat(p1.minus(p2).toString(), is(expected.toString()));
+    }
 }

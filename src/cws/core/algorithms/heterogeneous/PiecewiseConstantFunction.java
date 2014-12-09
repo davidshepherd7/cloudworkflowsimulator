@@ -3,10 +3,15 @@ package cws.core.algorithms.heterogeneous;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.NavigableMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import static java.util.Collections.unmodifiableCollection;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 
 /**
  * A representation of a piecewise constant function using a map. The first
@@ -59,6 +64,11 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         return unmodifiableCollection(jumpTimesAndValues.values());
     }
 
+    /** Iterate over the values */
+    public Collection<Double> jumpTimes() {
+        return unmodifiableCollection(jumpTimesAndValues.keySet());
+    }
+
     /** Iterate over jump times and values */
     @Override
     public Iterator<Map.Entry<Double, Double>> iterator() {
@@ -67,7 +77,8 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
 
     @Override
     public String toString() {
-        return jumpTimesAndValues.toString();
+        return "initial=" + initialValue
+                + " " + jumpTimesAndValues.toString();
     }
 
     /** Helper function. Replace by
@@ -80,6 +91,7 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         else throw new NullPointerException();
     }
 
+    /** Integral of the function between a and b */
     public double integral(double a, double b) {
         // Start with the integral between a and the first key greater than a
         double total = this.getValue(a) * (jumpTimesAndValues.ceilingKey(a) - a);
@@ -101,8 +113,46 @@ public class PiecewiseConstantFunction implements Iterable<Map.Entry<Double, Dou
         return total;
     }
 
-    // public PiecewiseConstantFunction difference(PiecewiseConstantFunction other) {
-        
-        
-    // } 
+    /** Return a new function which is the square of this one */
+    public PiecewiseConstantFunction square() {
+        // Urgh... it should be possible to write a much more general
+        // function that takes another function and applies it to each
+        // value. But we don't have function types in Java7 (afaik) so we
+        // can't....
+
+        final double initial = pow(this.getValue(-Double.MAX_VALUE), 2);
+
+        PiecewiseConstantFunction newF = new PiecewiseConstantFunction(initial);
+
+        for (final Map.Entry<Double, Double> e : this) {
+            newF.addJump(e.getKey(), pow(e.getValue(), 2));
+        }
+
+        return newF;
+    }
+
+
+    /** Return a new function which is h(t) = this(t) - other(t) */
+    public PiecewiseConstantFunction minus(PiecewiseConstantFunction other) {
+        final double initial = this.getValue(-Double.MAX_VALUE)
+                - other.getValue(-Double.MAX_VALUE);
+        PiecewiseConstantFunction newF = new PiecewiseConstantFunction(initial);
+
+        Set<Double> allJumps = new HashSet<>(this.jumpTimes());
+        allJumps.addAll(other.jumpTimes());
+
+        for (final double jumpTime : allJumps) {
+            final double jumpValue = this.getValue(jumpTime) - other.getValue(jumpTime);
+            newF.addJump(jumpTime, jumpValue);
+        }
+
+        return newF;
+    }
+
+    /** Get the 2-norm of this function (square root of the integral of the
+     *  square of the function).
+     */
+    public double twoNorm(double a, double b) {
+        return sqrt(this.square().integral(a, b));
+    }
 }
