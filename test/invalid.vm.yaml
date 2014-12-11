@@ -8,3 +8,5 @@ provisioningDelay:
 deprovisioningDelay:
     distribution: constant
     value: 10.0
+
+powerConsumption: 50

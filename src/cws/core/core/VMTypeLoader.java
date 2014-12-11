@@ -70,6 +70,8 @@ public class VMTypeLoader {
     static final String DISTRIBUTION_TYPE_CONFIG_ENTRY = "distribution";
     static final String DISTRIBUTION_VALUE_CONFIG_ENTRY = "value";
 
+    static final String VM_POWER_CONSUMPTION_CONFIG_ENTRY = "powerConsumption";
+
     VMType loadVM(Map<String, Object> config) throws IllegalCWSArgumentException {
         if (!config.containsKey(VM_MIPS_CONFIG_ENTRY)) {
             throw new IllegalCWSArgumentException("mips configuration is missing in VM config file");
@@ -87,6 +89,8 @@ public class VMTypeLoader {
             throw new IllegalCWSArgumentException("provisioningDelay configuration is missing in VM config file");
         } else if (!config.containsKey("deprovisioningDelay")) {
             throw new IllegalCWSArgumentException("deprovisioningDelay configuration is missing in VM config file");
+        } else if (!config.containsKey("powerConsumption")) {
+            throw new IllegalCWSArgumentException("Power consumption is missing in VM config file");
         }
 
         Map<String, Object> billingConfig = getBillingSection(config);
@@ -105,9 +109,14 @@ public class VMTypeLoader {
         Map<String, Object> deprovisioningConfig = getDeprovisioningSection(config);
         ContinuousDistribution deprovisioningDelay = loadDistribution(factory, deprovisioningConfig);
 
+        double powerConsumption = ((Number)
+                config.get(VM_POWER_CONSUMPTION_CONFIG_ENTRY)).doubleValue();
+
         return VMTypeBuilder.newBuilder().mips(mips).cores(cores).price(unitPrice).cacheSize(cacheSize)
                 .billingTimeInSeconds(unitTime).provisioningTime(provisioningDelay)
-                .deprovisioningTime(deprovisioningDelay).build();
+                .deprovisioningTime(deprovisioningDelay)
+                .powerConsumptionInWatts(powerConsumption)
+                .build();
     }
 
     private ContinuousDistribution loadDistribution(ContinuousDistributionFactory factory,
@@ -180,6 +189,8 @@ public class VMTypeLoader {
                 "Overrides VM deprovisioning constant distribution value in seconds");
         deprovisioningDelayValue.setArgName("SECONDS");
         options.addOption(deprovisioningDelayValue);
+
+        // Power consumption from cli not implemented (add it if you need it).
     }
 
     /** Read vm type settings from a file specified within a command line,

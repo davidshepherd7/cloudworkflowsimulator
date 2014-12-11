@@ -32,6 +32,8 @@ public class VMTypeLoaderTest {
         config.put("mips", 1.0);
         config.put("cores", 1);
         config.put("cacheSize", 1);
+        config.put("powerConsumption", 37.5);
+
 
         billingConfig = new HashMap<String, Object>();
         billingConfig.put("unitTime", 1.0);
@@ -112,6 +114,12 @@ public class VMTypeLoaderTest {
         Assert.assertTrue(vmType.getDeprovisioningDelay() instanceof UniformDistr);
     }
 
+    @Test
+    public void shouldLoadPowerConsumption() {
+        VMType vmType = vmLoader.loadVM(config);
+        Assert.assertEquals(37.5, vmType.powerConsumption);
+    }
+
     @Test(expected = IllegalCWSArgumentException.class)
     public void shouldFailIfMipsIsMissing() throws InvalidDistributionException {
         config.remove("mips");
@@ -179,6 +187,12 @@ public class VMTypeLoaderTest {
     public void shouldFailIfDeprovisioningDelayDistributionIsInvalid() {
         deprovisioningConfig.remove("distribution");
 
+        vmLoader.loadVM(config);
+    }
+
+    @Test(expected = IllegalCWSArgumentException.class)
+    public void shouldFailIfPowerConsumptionIsMissing() {
+        config.remove("powerConsumption");
         vmLoader.loadVM(config);
     }
 
