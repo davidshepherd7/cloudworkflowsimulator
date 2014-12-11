@@ -298,7 +298,7 @@ public abstract class StaticAlgorithm extends HomogeneousAlgorithm implements Pr
         Task task = vmqueue.peek();
         if (task == null) {
             // No more tasks
-            getCloudsim().send(getWorkflowEngine().getId(), getCloud().getId(), 0.0, WorkflowEvent.VM_TERMINATE, vm);
+            getCloud().terminateVM(vm);
         } else {
             // If job for task is ready
             if (readyJobs.containsKey(task)) {

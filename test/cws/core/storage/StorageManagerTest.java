@@ -41,6 +41,7 @@ public abstract class StorageManagerTest {
         job = Mockito.mock(Job.class);
         vm = Mockito.mock(VM.class);
         Mockito.when(vm.getId()).thenReturn(100);
+        Mockito.when(vm.getCloudsim()).thenReturn(cloudsim);
         job.setVM(vm);
         Mockito.when(job.getVM()).thenReturn(vm);
         task = Mockito.mock(Task.class);
@@ -54,7 +55,7 @@ public abstract class StorageManagerTest {
 
     @Test
     public void testBeforeTaskStartOnJobWithNoFiles() {
-        Mockito.when(task.getInputFiles()).thenReturn(ImmutableList.of());
+        Mockito.when(task.getInputFiles()).thenReturn(ImmutableList.<DAGFile>of());
         skipEvent(100, WorkflowEvent.STORAGE_ALL_BEFORE_TRANSFERS_COMPLETED, cloudsim);
         CloudSim.send(-1, storageManager.getId(), random.nextDouble(), WorkflowEvent.STORAGE_BEFORE_TASK_START, job);
         CloudSim.startSimulation();
@@ -65,7 +66,7 @@ public abstract class StorageManagerTest {
 
     @Test
     public void testAfterTaskCompletedOnJobWithNoFiles() {
-        Mockito.when(task.getOutputFiles()).thenReturn(ImmutableList.of());
+        Mockito.when(task.getOutputFiles()).thenReturn(ImmutableList.<DAGFile>of());
         skipEvent(100, WorkflowEvent.STORAGE_ALL_AFTER_TRANSFERS_COMPLETED, cloudsim);
         CloudSim.send(-1, storageManager.getId(), random.nextDouble(), WorkflowEvent.STORAGE_AFTER_TASK_COMPLETED, job);
         CloudSim.startSimulation();
