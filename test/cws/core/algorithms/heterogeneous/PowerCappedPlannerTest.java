@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import org.cloudbus.cloudsim.core.CloudSim;
 import cws.core.Cloud;
 import cws.core.EnsembleManager;
+import cws.core.core.PiecewiseConstantFunction;
 
 import cws.core.Scheduler;
 import cws.core.VM;
@@ -170,7 +171,7 @@ public class PowerCappedPlannerTest {
 
     @Test
     public void testThrowIfNotEnoughPowerForAnyResource() throws NoFeasiblePlan {
-        
+
         // Initial plan over the cap
         VMType vmType = makeVmType(50);
         Plan initialPlan = new Plan(asList(vmType));

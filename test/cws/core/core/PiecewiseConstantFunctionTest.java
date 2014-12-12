@@ -1,4 +1,4 @@
-package cws.core.algorithms.heterogeneous;
+package cws.core.core;
 
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;

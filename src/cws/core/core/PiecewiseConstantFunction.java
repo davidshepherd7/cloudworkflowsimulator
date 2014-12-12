@@ -1,4 +1,4 @@
-package cws.core.algorithms.heterogeneous;
+package cws.core.core;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -78,7 +78,7 @@ public class PiecewiseConstantFunction {
     public Collection<Double> jumpValues() {
         return unmodifiableCollection(jumpTimesAndValues.values());
     }
-    
+
     @Override
     public String toString() {
         return "initial=" + initialValue

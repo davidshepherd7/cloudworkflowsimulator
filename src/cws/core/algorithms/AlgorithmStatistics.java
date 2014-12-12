@@ -17,7 +17,7 @@ import cws.core.jobs.Job;
 import cws.core.jobs.Job.Result;
 import cws.core.jobs.JobListener;
 
-import cws.core.algorithms.heterogeneous.PiecewiseConstantFunction;
+import cws.core.core.PiecewiseConstantFunction;
 
 public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener, VMListener, JobListener {
     private final List<DAG> allDags;
@@ -208,7 +208,7 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
         }
         return time;
     }
-    
+
     /**
      * Returns total time of all VMs spent on computations. The assumption is that VMs are 1-core.
      */

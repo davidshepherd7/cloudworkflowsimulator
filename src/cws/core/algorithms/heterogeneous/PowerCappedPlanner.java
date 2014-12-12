@@ -19,6 +19,7 @@ import org.cloudbus.cloudsim.Log;
 
 import cws.core.VM;
 import cws.core.core.VMType;
+import cws.core.core.PiecewiseConstantFunction;
 
 import cws.core.dag.DAG;
 import cws.core.dag.Task;
