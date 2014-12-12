@@ -94,8 +94,10 @@ public class VMTypeLoader {
             throw new IllegalCWSArgumentException("provisioningDelay configuration is missing in VM config file");
         } else if (!config.containsKey("deprovisioningDelay")) {
             throw new IllegalCWSArgumentException("deprovisioningDelay configuration is missing in VM config file");
-        } else if (!rtDistConfig.containsKey("distribution")) {
+        } else if (rtDistConfig == null) {
             throw new IllegalCWSArgumentException("runtimeDistribution configuration is missing in VM config file");
+        } else if (!rtDistConfig.containsKey("distribution")) {
+            throw new IllegalCWSArgumentException("runtimeDistribution:distribution is missing in VM config file");
         }
 
         Map<String, Object> billingConfig = getBillingSection(config);
