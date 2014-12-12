@@ -21,14 +21,14 @@ public class RuntimeDistributionFactory {
 
         String dt = distributionType.toLowerCase();
         
-        if (dt == "identity") {
+        if (dt.equals("identity")) {
             if (variance != 0.0) {
                 throw new IllegalCWSArgumentException(
                         "Can't have an identity distribution with non-zero variance");
             }
             return new IdentityRuntimeDistribution();
             
-        } else if(dt == "uniform") {
+        } else if(dt.equals("uniform")) {
             return new UniformRuntimeDistribution(variance);
             
         } else {
