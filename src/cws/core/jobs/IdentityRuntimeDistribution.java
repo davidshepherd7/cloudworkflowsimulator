@@ -11,4 +11,9 @@ public class IdentityRuntimeDistribution implements RuntimeDistribution {
     public double getActualRuntime(double runtime) {
         return runtime;
     }
+
+    @Override
+    public double getVariance() {
+        return 0.0;
+    }
 }

@@ -10,6 +10,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
+import cws.core.jobs.RuntimeDistribution;
+import cws.core.jobs.RuntimeDistributionFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import cws.core.exception.IllegalCWSArgumentException;
@@ -71,8 +73,13 @@ public class VMTypeLoader {
     static final String DISTRIBUTION_VALUE_CONFIG_ENTRY = "value";
 
     static final String VM_POWER_CONSUMPTION_CONFIG_ENTRY = "powerConsumption";
+            
+    private static final double DEFAULT_RUNTIME_VARIANCE = 0.0;
 
     VMType loadVM(Map<String, Object> config) throws IllegalCWSArgumentException {
+
+        Map<String, Object> rtDistConfig = getRuntimeDistributionSection(config);
+
         if (!config.containsKey(VM_MIPS_CONFIG_ENTRY)) {
             throw new IllegalCWSArgumentException("mips configuration is missing in VM config file");
         } else if (!config.containsKey(VM_CORES_CONFIG_ENTRY)) {
@@ -91,6 +98,10 @@ public class VMTypeLoader {
             throw new IllegalCWSArgumentException("deprovisioningDelay configuration is missing in VM config file");
         } else if (!config.containsKey("powerConsumption")) {
             throw new IllegalCWSArgumentException("Power consumption is missing in VM config file");
+        } else if (rtDistConfig == null) {
+            throw new IllegalCWSArgumentException("runtimeDistribution configuration is missing in VM config file");
+        } else if (!rtDistConfig.containsKey("distribution")) {
+            throw new IllegalCWSArgumentException("runtimeDistribution:distribution is missing in VM config file");
         }
 
         Map<String, Object> billingConfig = getBillingSection(config);
@@ -111,11 +122,17 @@ public class VMTypeLoader {
 
         double powerConsumption = ((Number)
                 config.get(VM_POWER_CONSUMPTION_CONFIG_ENTRY)).doubleValue();
+        
+        String distribution = (String) rtDistConfig.get("distribution");
+        double variance = ((Number) rtDistConfig.get("variance")).doubleValue();
+        RuntimeDistribution rtDist = RuntimeDistributionFactory.build(distribution,
+                variance);
 
         return VMTypeBuilder.newBuilder().mips(mips).cores(cores).price(unitPrice).cacheSize(cacheSize)
                 .billingTimeInSeconds(unitTime).provisioningTime(provisioningDelay)
                 .deprovisioningTime(deprovisioningDelay)
                 .powerConsumptionInWatts(powerConsumption)
+                .runtimeDistribution(rtDist)
                 .build();
     }
 
@@ -137,7 +154,7 @@ public class VMTypeLoader {
         options.addOption(vmConfigDirectory);
 
         Option vm = new Option(VM_TYPE_SHORT_OPTION_NAME, VM_TYPE_OPTION_NAME, HAS_ARG, String.format(
-                "VM config filename, defaults to %s", DEFAULT_VM_FILENAME));
+                        "VM config filename, defaults to %s", DEFAULT_VM_FILENAME));
         vm.setArgName("FILENAME");
         options.addOption(vm);
 
@@ -277,22 +294,27 @@ public class VMTypeLoader {
     }
 
     @SuppressWarnings("unchecked")
-	private Map<String, Object> getProvisioningSection(Map<String, Object> vmConfig) {
+    private Map<String, Object> getProvisioningSection(Map<String, Object> vmConfig) {
         return (Map<String, Object>) vmConfig.get("provisioningDelay");
     }
 
     @SuppressWarnings("unchecked")
-	private Map<String, Object> getDeprovisioningSection(Map<String, Object> config) {
+    private Map<String, Object> getDeprovisioningSection(Map<String, Object> config) {
         return (Map<String, Object>) config.get("deprovisioningDelay");
     }
 
     @SuppressWarnings("unchecked")
-	private Map<String, Object> getBillingSection(Map<String, Object> vmConfig) {
+    private Map<String, Object> getBillingSection(Map<String, Object> vmConfig) {
         return (Map<String, Object>) vmConfig.get("billing");
     }
 
     @SuppressWarnings("unchecked")
-	private Map<String, Object> loadVMFromConfigFile(CommandLine args) throws FileNotFoundException {
+    private Map<String, Object> getRuntimeDistributionSection(Map<String, Object> vmConfig) {
+        return (Map<String, Object>) vmConfig.get("runtimeDistribution");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> loadVMFromConfigFile(CommandLine args) throws FileNotFoundException {
         String vmConfigFilename = args.getOptionValue(VM_TYPE_OPTION_NAME, DEFAULT_VM_FILENAME);
         String vmConfigDirectory = args.getOptionValue(VM_CONFIGS_DIRECTORY_OPTION_NAME, DEFAULT_VM_CONFIGS_DIRECTORY);
 
