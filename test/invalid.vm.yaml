@@ -8,3 +8,7 @@ provisioningDelay:
 deprovisioningDelay:
     distribution: constant
     value: 10.0
+    
+runtimeDistribution:
+  distribution: identity
+  variance: 0.0
