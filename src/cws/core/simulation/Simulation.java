@@ -434,7 +434,7 @@ public class Simulation {
                             algorithmStatistics.getCost(), algorithmStatistics.getLastJobFinishTime(),
                             algorithmStatistics.getLastDagFinishTime());
                     fileOut.printf("%f,%f,%f,%f,%f,%f,%f,", algorithmStatistics.getLastVMFinishTime(),
-                            VMFactory.getRuntimeVariance(), VMFactory.getFailureRate(), minBudget, maxBudget,
+                            vmType.getRuntimeVariance(), VMFactory.getFailureRate(), minBudget, maxBudget,
                             minDeadline, maxDeadline);
                     fileOut.printf("%f,%f,", algorithmStatistics.getTimeSpentOnTransfers(),
                             algorithmStatistics.getTimeSpentOnComputations());

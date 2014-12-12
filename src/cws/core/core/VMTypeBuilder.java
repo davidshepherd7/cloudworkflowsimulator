@@ -4,12 +4,18 @@ import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
 
 import cws.core.provisioner.ConstantDistribution;
 
+import cws.core.jobs.RuntimeDistribution;
+import cws.core.jobs.IdentityRuntimeDistribution;
+
 public class VMTypeBuilder {
     private static final double DEFAULT_BILLING_TIME = 3600;
     private static final long DEFAULT_CACHE_SIZE = 100000000;
 
     private static final ContinuousDistribution DEFAULT_PROVISIONING_DELAY = new ConstantDistribution(0.0);
     private static final ContinuousDistribution DEFAULT_DEPROVISIONING_DELAY = new ConstantDistribution(10.0);
+
+    private static final RuntimeDistribution DEFAULT_RUNTIME_DISTRIBUTION
+        = new IdentityRuntimeDistribution();
 
     public static MipsStep newBuilder() {
         return new Steps();
@@ -36,6 +42,8 @@ public class VMTypeBuilder {
 
         OptionalsStep cacheSize(long cacheSize);
 
+        OptionalsStep runtimeDistribution(RuntimeDistribution runtimeDistribution);
+
         VMType build();
     }
 
@@ -48,6 +56,7 @@ public class VMTypeBuilder {
         private ContinuousDistribution provisioningTime = DEFAULT_PROVISIONING_DELAY;
         private ContinuousDistribution deprovisioningTime = DEFAULT_DEPROVISIONING_DELAY;
         private long cacheSize = DEFAULT_CACHE_SIZE;
+        private RuntimeDistribution runtimeDistribution = DEFAULT_RUNTIME_DISTRIBUTION;
 
         @Override
         public CoresStep mips(double mips) {
@@ -93,8 +102,17 @@ public class VMTypeBuilder {
         }
 
         @Override
+        public OptionalsStep runtimeDistribution(RuntimeDistribution runtimeDistribution) {
+            this.runtimeDistribution = runtimeDistribution;
+            return this;
+        }
+
+
+        @Override
         public VMType build() {
-            return new VMType(mips, cores, price, billingTimeInSeconds, provisioningTime, deprovisioningTime, cacheSize);
+            return new VMType(mips, cores, price, billingTimeInSeconds,
+                    provisioningTime, deprovisioningTime, cacheSize,
+                    runtimeDistribution);
         }
     }
 }

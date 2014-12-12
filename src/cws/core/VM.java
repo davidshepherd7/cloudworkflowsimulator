@@ -73,12 +73,6 @@ public class VM extends CWSSimEntity {
     /** Has this VM been started? */
     private boolean isLaunched;
 
-    /** Varies the actual runtime of tasks according to the specified distribution */
-    private final RuntimeDistribution runtimeDistribution;
-
-    /** Varies the failure rate of tasks according to a specified distribution */
-    private final FailureModel failureModel;
-
     /** Read intervals of all jobs. */
     private final Map<Job, Interval> readIntervals = new HashMap<Job, VM.Interval>();
 
@@ -88,7 +82,10 @@ public class VM extends CWSSimEntity {
     /** Computation intervals of all jobs. */
     private final Map<Job, Interval> computationIntervals = new HashMap<Job, VM.Interval>();
 
-    VM(VMType vmType, CloudSimWrapper cloudsim, FailureModel failureModel, RuntimeDistribution runtimeDistribution) {
+    /** Varies the failure rate of tasks according to a specified distribution */
+    private final FailureModel failureModel;
+
+    VM(VMType vmType, CloudSimWrapper cloudsim,  FailureModel failureModel) {
         super("VM" + (nextId++), cloudsim);
         this.vmType = vmType;
         this.jobs = new LinkedList<Job>();
@@ -99,7 +96,6 @@ public class VM extends CWSSimEntity {
         this.isTerminated = false;
         this.isLaunched = false;
         this.failureModel = failureModel;
-        this.runtimeDistribution = runtimeDistribution;
     }
 
     /**
@@ -241,12 +237,9 @@ public class VM extends CWSSimEntity {
         // add it to the running set
         runningJobs.add(job);
 
-        // Compute the duration of the job on this VM
-        double size = job.getTask().getSize();
-        double predictedRuntime = size / vmType.getMips();
-
-        // Compute actual runtime
-        double actualRuntime = this.runtimeDistribution.getActualRuntime(predictedRuntime);
+        // Compute the duration of the job on this VM (accounting for
+        // random variations).
+        double actualRuntime = this.vmType.getActualTaskRuntime(job.getTask());
 
         // Decide whether the job succeeded or failed
         if (failureModel.failureOccurred()) {
@@ -258,11 +251,12 @@ public class VM extends CWSSimEntity {
             job.setResult(Job.Result.SUCCESS);
         }
 
-        getCloudsim()
-                .log(String
-                        .format("Starting computational part of job %s (task_id = %s, workflow = %s) on VM %s. Will finish in %f",
-                                job.getID(), job.getTask().getId(), job.getDAGJob().getDAG().getId(), job.getVM()
-                                        .getId(), actualRuntime));
+        String logString = String.format(
+                "Starting computational part of job %s (task_id = %s, workflow = %s) on VM %s. Will finish in %f",
+                job.getID(), job.getTask().getId(), job.getDAGJob().getDAG().getId(), job.getVM()
+                .getId(), actualRuntime);
+        getCloudsim().log(logString);
+
 
         getCloudsim().send(getId(), getId(), actualRuntime, WorkflowEvent.JOB_FINISHED, job);
 
@@ -401,10 +395,6 @@ public class VM extends CWSSimEntity {
 
     public VMType getVmType() {
         return vmType;
-    }
-
-    public RuntimeDistribution getRuntimeDistribution() {
-        return runtimeDistribution;
     }
 
     public FailureModel getFailureModel() {

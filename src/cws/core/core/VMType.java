@@ -3,6 +3,8 @@ package cws.core.core;
 import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
 
 import cws.core.dag.Task;
+import cws.core.jobs.RuntimeDistribution;
+
 
 public class VMType implements Cloneable {
     /**
@@ -41,6 +43,9 @@ public class VMType implements Cloneable {
      */
     private final long cacheSize;
 
+    /** Varies the actual runtime of tasks according to the specified distribution */
+    private final RuntimeDistribution runtimeDistribution;
+
     public double getMips() {
         return mips;
     }
@@ -69,8 +74,27 @@ public class VMType implements Cloneable {
         return cacheSize;
     }
 
+    public RuntimeDistribution getRuntimeDistribution() {
+        return runtimeDistribution;
+    }
+
+    public double getRuntimeVariance() {
+        return getRuntimeDistribution().getVariance();
+    }
+
+    /** Get the expected runtime of the task (not accounting for random
+     * variations due to runtimeDistribution).
+     */
     public double getPredictedTaskRuntime(Task task) {
         return task.getSize() / getMips();
+    }
+
+    /** Get a sample runtime of the task (accounting for random variations
+     * due to runtimeDistribution).
+     */
+    public double getActualTaskRuntime(Task task) {
+        double predictedRuntime = getPredictedTaskRuntime(task);
+        return this.runtimeDistribution.getActualRuntime(predictedRuntime);
     }
 
     public double getVMCostFor(double runtimeInSeconds) {
@@ -88,7 +112,8 @@ public class VMType implements Cloneable {
     }
 
     public VMType(double mips, int cores, double billingUnitPrice, double billingTimeInSeconds,
-                  ContinuousDistribution provisioningTime, ContinuousDistribution deprovisioningTime, long cacheSize) {
+            ContinuousDistribution provisioningTime, ContinuousDistribution deprovisioningTime, long cacheSize,
+            RuntimeDistribution runtimeDistribution) {
         this.mips = mips;
         this.cores = cores;
         this.billingUnitPrice = billingUnitPrice;
@@ -96,5 +121,6 @@ public class VMType implements Cloneable {
         this.provisioningDelay = provisioningTime;
         this.deprovisioningDelay = deprovisioningTime;
         this.cacheSize = cacheSize;
+        this.runtimeDistribution = runtimeDistribution;
     }
 }

@@ -5,12 +5,21 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
+import static org.junit.Assert.assertThat;
+// import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
+
+
 import org.cloudbus.cloudsim.distributions.UniformDistr;
 import org.junit.Before;
 import org.junit.Test;
 
 import cws.core.exception.IllegalCWSArgumentException;
 import cws.core.provisioner.ConstantDistribution;
+
+import cws.core.jobs.RuntimeDistribution;
+import cws.core.jobs.IdentityRuntimeDistribution;
+import cws.core.jobs.UniformRuntimeDistribution;
 
 public class VMTypeLoaderTest {
 
@@ -20,6 +29,8 @@ public class VMTypeLoaderTest {
     private Map<String, Object> billingConfig;
     private Map<String, Object> provisioningConfig;
     private Map<String, Object> deprovisioningConfig;
+    private Map<String, Object> runtimeDistributionConfig;
+
 
     @Before
     public void setUp() {
@@ -49,6 +60,12 @@ public class VMTypeLoaderTest {
 
         config.put("provisioningDelay", provisioningConfig);
         config.put("deprovisioningDelay", deprovisioningConfig);
+
+
+        runtimeDistributionConfig = new HashMap<String, Object>();
+        runtimeDistributionConfig.put("distribution", "identity");
+        runtimeDistributionConfig.put("variance", 0.0);
+        config.put("runtimeDistribution", runtimeDistributionConfig);
     }
 
     @Test
@@ -110,6 +127,26 @@ public class VMTypeLoaderTest {
         VMType vmType = vmLoader.loadVM(config);
 
         Assert.assertTrue(vmType.getDeprovisioningDelay() instanceof UniformDistr);
+    }
+
+    @Test
+    public void shouldLoadIdentityRuntimeDistribution() {
+        VMType vmType = vmLoader.loadVM(config);
+
+        Assert.assertTrue(vmType.getRuntimeDistribution() instanceof IdentityRuntimeDistribution);
+        Assert.assertEquals(0.0, vmType.getRuntimeVariance());
+    }
+
+    @Test
+    public void shouldLoadNonTrivialRuntimeDistribution() {
+        runtimeDistributionConfig.remove("distribution");
+        runtimeDistributionConfig.put("distribution", "uniform");
+        runtimeDistributionConfig.put("variance", 0.1);
+
+        VMType vmType = vmLoader.loadVM(config);
+
+        assertThat(vmType.getRuntimeDistribution(), instanceOf(UniformRuntimeDistribution.class));
+        Assert.assertEquals(0.1, vmType.getRuntimeVariance());
     }
 
     @Test(expected = IllegalCWSArgumentException.class)
@@ -178,6 +215,22 @@ public class VMTypeLoaderTest {
     @Test(expected = IllegalCWSArgumentException.class)
     public void shouldFailIfDeprovisioningDelayDistributionIsInvalid() {
         deprovisioningConfig.remove("distribution");
+
+        vmLoader.loadVM(config);
+    }
+
+
+    @Test(expected = IllegalCWSArgumentException.class)
+    public void shouldFailIfRuntimeDistributionIsMissing() {
+        runtimeDistributionConfig.remove("distribution");
+
+        vmLoader.loadVM(config);
+    }
+
+
+    @Test(expected = IllegalCWSArgumentException.class)
+    public void shouldFailIfRuntimeDistributionIsInvalid() {
+        runtimeDistributionConfig.put("distribution", "not-a-real-distribution");
 
         vmLoader.loadVM(config);
     }
