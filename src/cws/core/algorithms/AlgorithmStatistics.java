@@ -167,7 +167,8 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
 
         double simTime = getCloudsim().clock();
         double oldPower = this.powerUsed.getValue(simTime);
-        this.powerUsed.addJump(simTime, oldPower + vm.getVmType().powerConsumption);
+        this.powerUsed.addJump(simTime,
+                oldPower + vm.getVmType().getPowerConsumption());
     }
 
     @Override
@@ -176,7 +177,8 @@ public class AlgorithmStatistics extends CWSSimEntity implements DAGJobListener,
 
         double simTime = getCloudsim().clock();
         double oldPower = this.powerUsed.getValue(simTime);
-        this.powerUsed.addJump(simTime, oldPower - vm.getVmType().powerConsumption);
+        this.powerUsed.addJump(simTime,
+                oldPower - vm.getVmType().getPowerConsumption());
     }
 
     @Override

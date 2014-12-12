@@ -92,7 +92,7 @@ public class Plan {
 
         for(Resource r : resources) {
             if(r.isOnAt(time)) {
-                totalPower += r.vmtype.powerConsumption;
+                totalPower += r.vmtype.getPowerConsumption();
             }
         }
 

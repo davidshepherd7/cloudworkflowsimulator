@@ -123,7 +123,7 @@ public class PowerCappedPlanner implements Planner {
             VMType vmtype) {
 
         // Add Resources that start now until we are near the cap
-        while (plan.powerConsumptionAt(time) + vmtype.powerConsumption < powerCap) {
+        while (plan.powerConsumptionAt(time) + vmtype.getPowerConsumption() < powerCap) {
             plan.resources.add(new Resource(vmtype, time));
         }
     }

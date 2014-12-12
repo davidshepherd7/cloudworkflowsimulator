@@ -15,7 +15,7 @@ public class VMType implements Cloneable {
     /**
      * The electrical power consumption of this VM
      */
-    public final double powerConsumption;
+    private final double powerConsumption;
 
     /**
      * The number of cores of this VM
@@ -53,6 +53,10 @@ public class VMType implements Cloneable {
 
     public double getMips() {
         return mips;
+    }
+
+    public double getPowerConsumption() {
+        return powerConsumption;
     }
 
     public int getCores() {

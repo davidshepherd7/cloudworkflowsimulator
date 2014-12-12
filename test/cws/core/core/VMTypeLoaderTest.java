@@ -134,7 +134,7 @@ public class VMTypeLoaderTest {
     @Test
     public void shouldLoadPowerConsumption() {
         VMType vmType = vmLoader.loadVM(config);
-        Assert.assertEquals(37.5, vmType.powerConsumption);
+        Assert.assertEquals(37.5, vmType.getPowerConsumption());
     }
 
     @Test
