@@ -11,6 +11,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import static java.util.Arrays.asList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
@@ -253,4 +254,58 @@ public class HeftPlannerTest extends PlannerTestBase {
         Plan plan = planner.planDAG(dag, initialPlan);
     }
 
+
+    @Test
+    public void testWithNewVMAllocation() throws NoFeasiblePlan {
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 2));
+        dag.addTask(new Task("b", "", 2));
+        dag.addTask(new Task("c", "", 2));
+        // no edges so that two VMs can be used
+
+        final VMType vmtype = makeVM(1.0);
+        Plan initialPlan = new Plan();
+        final Resource r = new Resource(vmtype, 0.0);
+        initialPlan.resources.add(r);
+
+
+        Planner planner = new HeftPlanner(asList(vmtype));
+        Plan actual = planner.planDAG(dag, initialPlan);
+
+        assertAllTasksArePlanned(actual, dag);
+        assertNoTasksOverlap(actual);
+
+        assertThat("some additional vm was allocated",
+                actual.vmList().size(),
+                greaterThan(initialPlan.vmList().size()));
+
+
+        assertThat("enough additional vms were allocated",
+                actual.vmList().size(), is(dag.numTasks()));
+
+    }
+
+        @Test
+    public void testNoExcessVMAllocation() throws NoFeasiblePlan {
+        DAG dag = new DAG();
+        dag.addTask(new Task("a", "", 2));
+        dag.addTask(new Task("b", "", 2));
+        dag.addTask(new Task("c", "", 2));
+        dag.addEdge("a", "b");
+
+        final VMType vmtype = makeVM(1.0);
+        Plan initialPlan = new Plan();
+        final Resource r = new Resource(vmtype, 0.0);
+        initialPlan.resources.add(r);
+
+
+        Planner planner = new HeftPlanner(asList(vmtype));
+        Plan actual = planner.planDAG(dag, initialPlan);
+
+        assertAllTasksArePlanned(actual, dag);
+        assertNoTasksOverlap(actual);
+
+        assertThat("no excess vm was allocated",
+                actual.vmList().size(), is(2));
+    }
 }

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.common.collect.Iterables;
 
 import org.cloudbus.cloudsim.Log;
 
@@ -44,12 +45,21 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
  */
 public class HeftPlanner implements Planner {
 
+    final private List<VMType> creatableVMTypes;
+
+    public HeftPlanner() {
+        this(new ArrayList<VMType>());
+    }
+
+    public HeftPlanner(List<VMType> creatableVMTypes) {
+        this.creatableVMTypes = new ArrayList<>(creatableVMTypes);
+    }
 
     /** The main function of the Planner interface. */
     @Override
     public Plan planDAG(DAG dag, Plan currentPlan) throws NoFeasiblePlan {
         List<Task> rankedTasks = rankedTasks(dag, currentPlan.vmList());
-        return createPlan(rankedTasks, currentPlan);
+        return createPlan(rankedTasks, currentPlan, this.creatableVMTypes);
     }
 
 
@@ -127,9 +137,9 @@ public class HeftPlanner implements Planner {
         return sorted;
     }
 
-
     /** Actually create the plan. */
-    public static Plan createPlan(List<Task> rankedTasks, Plan currentPlan)
+    public static Plan createPlan(List<Task> rankedTasks, Plan currentPlan,
+                                  List<VMType> creatableVMTypes)
             throws NoFeasiblePlan {
 
         // Schedule tasks in rank order
@@ -143,11 +153,19 @@ public class HeftPlanner implements Planner {
                 lastParentFinishTime = Math.max(lastParentFinishTime, parentFinishTime);
             }
 
+            // List of resources that we could create. Make fresh list for
+            // each task to avoid issues when one of these resources is
+            // used.
+            List<Resource> creatableResources = new ArrayList<>();
+            for(VMType vmtype : creatableVMTypes) {
+                creatableResources.add(new Resource(vmtype));
+            }
+
             // Check each resource for earliest finish time, and pick the
             // one that gives the earliest of them all.
             double earliestFinishTime = Double.MAX_VALUE;
             Solution bestSolution = null;
-            for(Resource r : plan.resources) {
+            for(Resource r : Iterables.concat(plan.resources, creatableResources)) {
 
                 // Compute times
                 final double duration = r.vmtype.getPredictedTaskRuntime(t);
@@ -164,6 +182,12 @@ public class HeftPlanner implements Planner {
                                 new Slot(t, resourceStartTime, duration),
                                 r.vmtype.getVMCostFor(duration),
                                 false);
+
+                        // Actually this newResource=false is a lie if we
+                        // are using a resource from creatableResources,
+                        // doesn't matter though because we don't compare
+                        // solutions using the comaparator.
+
                         earliestFinishTime = resourceFinishTime;
                     }
                 }
@@ -174,6 +198,7 @@ public class HeftPlanner implements Planner {
             } else {
                 bestSolution.addToPlan(plan);
             }
+
         }
 
         return plan;
