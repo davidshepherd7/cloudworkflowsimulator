@@ -79,6 +79,10 @@ public class PiecewiseConstantFunction {
         return unmodifiableCollection(jumpTimesAndValues.values());
     }
 
+    public Map.Entry<Double, Double> getFinalJump() {
+        return jumpTimesAndValues.lastEntry();
+    }
+
     @Override
     public String toString() {
         return "initial=" + initialValue
