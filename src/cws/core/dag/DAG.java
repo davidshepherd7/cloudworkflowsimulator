@@ -88,4 +88,14 @@ public class DAG {
     public void setId(String id) {
         this.id = id;
     }
+
+    /** Get the total size (in million instructions) of the DAG.
+     */
+    public double getTotalSize() {
+        double total = 0.0;
+        for (Task t : tasks.values()) {
+            total += t.getSize();
+        }
+        return total;
+    }
 }
