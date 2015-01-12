@@ -40,7 +40,7 @@ public class EnsembleDynamicSchedulerUnitTest {
         cloudsim = mock(CloudSimWrapper.class);
         environment = mock(Environment.class);
 
-        scheduler = new EnsembleDynamicScheduler(cloudsim, environment);
+        scheduler = new EnsembleDynamicScheduler(cloudsim);
         engine = mock(WorkflowEngine.class);
         when(engine.getDeadline()).thenReturn(1.0);
 

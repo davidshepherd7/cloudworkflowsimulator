@@ -50,7 +50,7 @@ public class EnsembleDynamicSchedulerTest {
         environment = new Environment(vmType, storageManager);
 
         provisioner = null;
-        scheduler = new EnsembleDynamicScheduler(cloudsim, environment);
+        scheduler = new EnsembleDynamicScheduler(cloudsim);
         engine = new WorkflowEngine(provisioner, scheduler, Double.MAX_VALUE, Double.MAX_VALUE, cloudsim);
         cloud = new Cloud(cloudsim);
 

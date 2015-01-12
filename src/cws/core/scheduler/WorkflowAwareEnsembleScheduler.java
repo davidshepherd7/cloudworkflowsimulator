@@ -21,8 +21,11 @@ import cws.core.jobs.Job;
  * @author malawski
  */
 public class WorkflowAwareEnsembleScheduler extends EnsembleDynamicScheduler {
+    protected Environment environment;
+
     public WorkflowAwareEnsembleScheduler(CloudSimWrapper cloudsim, Environment environment) {
-        super(cloudsim, environment);
+        super(cloudsim);
+        this.environment = environment;
     }
 
     private final Set<DAGJob> admittedDAGs = new HashSet<DAGJob>();
