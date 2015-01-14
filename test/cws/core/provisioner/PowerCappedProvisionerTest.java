@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.Rule;
 import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalMatchers.gt;
 
 import java.lang.Math;
 import java.util.List;
@@ -32,6 +33,8 @@ import cws.core.Provisioner;
 import cws.core.cloudsim.CWSSimEntity;
 import cws.core.cloudsim.CloudSimWrapper;
 import cws.core.WorkflowEngine;
+import cws.core.WorkflowEvent;
+
 
 import cws.core.VM;
 import cws.core.VMFactory;
@@ -205,6 +208,34 @@ public class PowerCappedProvisionerTest {
         // Check that we terminated all 3, even the busy one
         verify(cloud, times(3)).terminateVM(any(VM.class));
         verify(cloud, times(1)).terminateVM(busyVM);
+    }
+
+    @Test
+    public void testSendNextProvisioningRequest() {
+        CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
+
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
+        powerCap.addJump(0.0, 3.1);
+        powerCap.addJump(4.0, 0.5);
+
+        when(cloud.getAvailableVMs()).thenReturn(ImmutableList.<VM>of());
+
+        Provisioner a = new PowerCappedProvisioner(cloudsimMock, powerCap, asList(vmtype));
+        a.setCloud(cloud);
+
+        when(engine.clock()).thenReturn(0.0);
+        a.provisionResources(engine);
+
+        when(engine.clock()).thenReturn(4.0);
+        a.provisionResources(engine);
+
+        // Send request for provisioning at 4.0
+        verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
+                eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
+
+        // Don't send any requests for any future provisioning
+        verify(cloudsimMock, never()).send(anyInt(), anyInt(),
+                gt(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
     }
 
 }

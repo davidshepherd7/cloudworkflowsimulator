@@ -24,6 +24,7 @@ import cws.core.Provisioner;
 import cws.core.cloudsim.CWSSimEntity;
 import cws.core.cloudsim.CloudSimWrapper;
 import cws.core.WorkflowEngine;
+import cws.core.WorkflowEvent;
 
 import cws.core.VM;
 import cws.core.VMFactory;
@@ -81,9 +82,14 @@ public class PowerCappedProvisioner extends Provisioner {
 
         // Submit event to trigger the next provisioning request when the
         // power cap next changes
+        final Map.Entry<Double, Double> nextPowerChange =
+                powerCapFunction.getNextJump(currentTime);
 
-        //??ds
-
+        // If it's null there are no more power changes
+        if (nextPowerChange != null) {
+            getCloudsim().send(engine.getId(), engine.getId(), nextPowerChange.getKey(),
+                    WorkflowEvent.PROVISIONING_REQUEST);
+        }
     }
 
 

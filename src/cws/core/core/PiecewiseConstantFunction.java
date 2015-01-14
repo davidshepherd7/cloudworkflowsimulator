@@ -59,6 +59,10 @@ public class PiecewiseConstantFunction {
         }
     }
 
+    public Map.Entry<Double, Double> getNextJump(double time) {
+        return jumpTimesAndValues.higherEntry(time);
+    }
+
     /** Set up the function */
     public void addJump(double time, double value) {
         jumpTimesAndValues.put(time, value);
