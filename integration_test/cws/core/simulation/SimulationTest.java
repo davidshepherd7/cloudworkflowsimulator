@@ -71,6 +71,7 @@ public class SimulationTest {
         simulation.runTest(args);
     }
 
+    @Test
     public void shouldNotRequireGlobalStorageParamsWithVoidStorage() throws ParseException {
         CommandLine args = validArgs.addOption("storage-manager", "void").build();
 
