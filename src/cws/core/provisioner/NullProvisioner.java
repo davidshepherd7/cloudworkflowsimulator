@@ -1,21 +1,19 @@
 package cws.core.provisioner;
 
-
 import cws.core.Provisioner;
 import cws.core.WorkflowEngine;
+import cws.core.cloudsim.CloudSimWrapper;
 
 
-/**
- * A provisioner that will never provision anything.
- *
- * @author David Shepherd
+/** A provisioner which does nothing when provisionResources() is called.
+ * Mainly for use with StaticAlgorithm: provides the algorithm with the
+ * ability to create VMs but does not create any itself.
  */
-public class NullProvisioner implements Provisioner {
+public class NullProvisioner extends Provisioner  {
 
-    public NullProvisioner() {}
-
-    @Override
-    public void provisionResources(WorkflowEngine engine) {
-        // Don't provision anything
+    public NullProvisioner(CloudSimWrapper cloudsim) {
+        super(cloudsim);
     }
+
+    public void provisionResources(WorkflowEngine engine) {}
 }
