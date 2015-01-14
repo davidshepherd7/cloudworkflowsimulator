@@ -137,7 +137,7 @@ public class Cloud extends CWSSimEntity {
     /**
      * Terminates the given VM. It will still be charged for the deprovisioning delay.
      */
-    public final void terminateVM(VM vm) {
+    public void terminateVM(VM vm) {
         // Sanity check
         if (!_vmsForSanityCheck.contains(vm)) {
             throw new RuntimeException("Unknown VM: " + vm.getId());
