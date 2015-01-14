@@ -1,6 +1,8 @@
 package cws.core.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
@@ -39,18 +41,18 @@ public class WorkflowAwareEnsembleScheduler extends EnsembleDynamicScheduler {
      */
     @Override
     protected void scheduleQueue(Queue<Job> jobs, WorkflowEngine engine) {
-        Set<VM> freeVMs = new HashSet<VM>(engine.getFreeVMs());
-
+        List<VM> freeVMs = new ArrayList<VM>(engine.getFreeVMs());
         while (!jobs.isEmpty() && !freeVMs.isEmpty()) {
             Job job = jobs.poll();
 
             if (isJobDagAdmitted(job, engine)) {
-                scheduleJob(job, freeVMs, engine);
+                VM vm = freeVMs.remove(freeVMs.size() - 1);
+                vm.jobSubmit(job);
             }
         }
     }
 
-    private boolean isJobDagAdmitted(Job job, WorkflowEngine engine) {
+    protected final boolean isJobDagAdmitted(Job job, WorkflowEngine engine) {
         DAGJob dj = job.getDAGJob();
 
         if (jobHasBeenAlreadyAdmitted(dj)) {
@@ -151,16 +153,28 @@ public class WorkflowAwareEnsembleScheduler extends EnsembleDynamicScheduler {
         for (String taskName : dag.getTasks()) {
             Task task = dag.getTaskById(taskName);
             if (!admittedDJ.isComplete(task)) {
-                cost += getPredictedRuntime(task) * environment.getSingleVMPrice();
+                cost += getPredictedRuntime(task, null) * environment.getSingleVMPrice();
             }
         }
         return cost / environment.getBillingTimeInSeconds();
     }
-    
-    protected double getPredictedRuntime(Task task) {
+
+    /**
+     * Returns projected runtime of the given task, based on some assumptions (e.g. whether file transfers are ignored
+     * or not).
+     * 
+     * Should be overridden in pair with the DAG predicting method.
+     */
+    protected double getPredictedRuntime(Task task, VM vm) {
         return environment.getComputationPredictedRuntime(task);
     }
-    
+
+    /**
+     * Returns projected runtime of the given DAG, based on some assumptions (e.g. whether file transfers are ignored
+     * or not).
+     * 
+     * Should be overridden in pair with the DAG predicting method.
+     */
     protected double getPredictedRuntime(DAG dag) {
         return environment.getComputationPredictedRuntime(dag);
     }

@@ -1,8 +1,8 @@
 package cws.core.scheduler;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import cws.core.Scheduler;
 import cws.core.VM;
@@ -32,36 +32,11 @@ public abstract class DAGDynamicScheduler extends CWSSimEntity implements Schedu
      * @param engine
      */
     protected void scheduleQueue(Queue<Job> jobs, WorkflowEngine engine) {
-        Set<VM> freeVMs = new HashSet<VM>(engine.getFreeVMs());
-
-        while (canBeScheduled(jobs, freeVMs)) {
+        List<VM> freeVMs = new ArrayList<VM>(engine.getFreeVMs());
+        while (!jobs.isEmpty() && !freeVMs.isEmpty()) {
             Job job = jobs.poll();
-            scheduleJob(job, freeVMs, engine);
+            VM vm = freeVMs.remove(freeVMs.size() - 1);
+            vm.jobSubmit(job);
         }
-    }
-
-    protected final void scheduleJob(Job job, Set<VM> freeVMs, WorkflowEngine engine) {
-        VM vm = getFirst(freeVMs);
-        markVMAsBusy(freeVMs, vm);
-
-        job.setVM(vm);
-
-        sendJobToVM(engine, vm, job);
-    }
-
-    private void sendJobToVM(WorkflowEngine engine, VM vm, Job job) {
-        vm.jobSubmit(job);
-    }
-
-    private boolean canBeScheduled(Queue<Job> jobs, Set<VM> freeVMs) {
-        return !freeVMs.isEmpty() && !jobs.isEmpty();
-    }
-
-    private void markVMAsBusy(Set<VM> freeVMs, VM vm) {
-        freeVMs.remove(vm);
-    }
-
-    private VM getFirst(Set<VM> freeVMs) {
-        return freeVMs.iterator().next();
     }
 }
