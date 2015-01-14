@@ -92,7 +92,7 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
 
     @Override
     public void shutdownEntity() {
-        getCloudsim().log("Total cost: " + getCost() + ", time: " + getCloudsim().clock());
+        getCloudsim().log("Total cost: " + getCost() + ", time: " + clock());
     }
 
     @Override
@@ -153,7 +153,7 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
         Task t = job.getTask();
 
         // If the job succeeded
-        if (job.getResult() == Job.Result.SUCCESS /* && getCloudsim().clock() <= deadline */) {
+        if (job.getResult() == Job.Result.SUCCESS /* && clock() <= deadline */) {
 
             // FIXME: temporary hack - when data transfer job
             if (dagJob != null) {
@@ -231,5 +231,11 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
 
     public void removeJobListener(JobListener l) {
         jobListeners.remove(l);
+    }
+
+    /** Get the current simultation time.
+     */
+    public double clock() {
+        return getCloudsim().clock();
     }
 }
