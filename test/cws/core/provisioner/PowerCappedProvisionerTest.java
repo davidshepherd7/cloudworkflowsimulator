@@ -180,6 +180,31 @@ public class PowerCappedProvisionerTest {
         verify(cloud, atLeast(1)).terminateVM(any(VM.class));
     }
 
+    @Test
+    public void testDeallocateAllVMs() {
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
+        powerCap.addJump(0.0, 3.1);
+        powerCap.addJump(4.0, 0.5);
 
+        // Make a busy VM mock
+        VM busyVM = mock(VM.class);
+        when(busyVM.isFree()).thenReturn(false);
+        when(busyVM.getVmType()).thenReturn(vmtype);
+
+        List<VM> threeVMs = ImmutableList.of(busyVM,
+                VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim));
+
+        when(engine.clock()).thenReturn(4.0);
+        when(cloud.getAvailableVMs()).thenReturn(threeVMs);
+
+        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+        a.setCloud(cloud);
+        a.provisionResources(engine);
+
+        // Check that we terminated all 3, even the busy one
+        verify(cloud, times(3)).terminateVM(any(VM.class));
+        verify(cloud, times(1)).terminateVM(busyVM);
+    }
 
 }

@@ -1,5 +1,6 @@
 package cws.core.provisioner;
 
+import java.lang.Boolean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,6 +12,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static java.util.Collections.reverse;
@@ -87,32 +90,25 @@ public class PowerCappedProvisioner extends Provisioner {
     private static List<VM> vmsToKill(Collection<VM> vmsActive,
             double powerCap) {
 
-        // could clean this up: only go through list once by sorting the
-        // list to have free VMs first?
-
+        // Get a copy of the VM list where the VMs are sorted by isFree(),
+        // with free VMs first.
         List<VM> vms = new LinkedList<VM>(vmsActive);
-        List<VM> vmsToKill = new LinkedList<VM>();
-
-        // For the first run we only kill free VMs
-        {
-            Iterator<VM> it = vms.iterator();
-            while (it.hasNext() && powerConsumption(vms) > powerCap) {
-                VM vm = it.next();
-                if(vm.isFree()) {
-                    vmsToKill.add(vm);
-                    it.remove();
+        Comparator<VM> compare = new Comparator<VM>() {
+                @Override
+                public int compare(VM vm1, VM vm2) {
+                    return Boolean.compare(vm1.isFree(), vm2.isFree());
                 }
-            }
-        }
+            };
+        Collections.sort(vms, Collections.reverseOrder(compare));
 
-        // Now start killing busy VMs if we are still over the cap
-        {
-            Iterator<VM> it = vms.iterator();
-            while (it.hasNext() && powerConsumption(vms) > powerCap) {
-                VM vm = it.next();
-                vmsToKill.add(vm);
-                it.remove();
-            }
+        // Now remove VMs (in order so that free ones are gone first) until
+        // we are complying with the cap.
+        Iterator<VM> it = vms.iterator();
+        List<VM> vmsToKill = new LinkedList<VM>();
+        while (it.hasNext() && powerConsumption(vms) > powerCap) {
+            VM vm = it.next();
+            vmsToKill.add(vm);
+            it.remove();
         }
 
         return vmsToKill;
