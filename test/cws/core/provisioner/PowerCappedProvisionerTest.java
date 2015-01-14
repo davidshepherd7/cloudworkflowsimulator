@@ -24,6 +24,7 @@ import static java.util.Collections.reverse;
 import static java.util.Collections.unmodifiableCollection;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Collections2;
 
 
 import cws.core.Cloud;
@@ -46,9 +47,6 @@ public class PowerCappedProvisionerTest {
     CloudSimWrapper cloudsim;
     VMType vmtype;
 
-    List<VM> threeVMs;
-
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -61,10 +59,6 @@ public class PowerCappedProvisionerTest {
         cloud = mock(Cloud.class);
 
         vmtype = makeVMType();
-
-        threeVMs = ImmutableList.of(VMFactory.createVM(vmtype, cloudsim),
-                VMFactory.createVM(vmtype, cloudsim),
-                VMFactory.createVM(vmtype, cloudsim));
     }
 
     public VMType makeVMType() {
@@ -109,6 +103,12 @@ public class PowerCappedProvisionerTest {
         powerCap.addJump(0.0, 3.1);
         powerCap.addJump(5.0, 10.1);
 
+
+        List<VM> threeVMs = ImmutableList.of(VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim));
+
+
         when(engine.clock()).thenReturn(5.0);
         when(cloud.getAvailableVMs()).thenReturn(threeVMs);
 
@@ -128,6 +128,10 @@ public class PowerCappedProvisionerTest {
         powerCap.addJump(0.0, 3.1);
         powerCap.addJump(4.0, 1.1);
 
+        List<VM> threeVMs = ImmutableList.of(VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim));
+
         when(engine.clock()).thenReturn(4.0);
         when(cloud.getAvailableVMs()).thenReturn(threeVMs);
 
@@ -135,7 +139,7 @@ public class PowerCappedProvisionerTest {
         a.setCloud(cloud);
         a.provisionResources(engine);
 
-        // Check that we launched the correct number of VMs: 3 -
+        // Check that we terminated the correct number of VMs: 3 -
         // floor(1.1/1.0) = 2
         verify(cloud, times(2)).terminateVM(any(VM.class));
     }
@@ -143,7 +147,37 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testFavourDeallocatingFreeVMs() {
-        assert(false);
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
+        powerCap.addJump(0.0, 3.1);
+        powerCap.addJump(4.0, 1.1);
+
+
+        // Make a busy VM mock
+        VM busyVM = mock(VM.class);
+        when(busyVM.isFree()).thenReturn(false);
+        when(busyVM.getVmType()).thenReturn(vmtype);
+
+        List<VM> threeVMs = ImmutableList.of(busyVM,
+                VMFactory.createVM(vmtype, cloudsim),
+                VMFactory.createVM(vmtype, cloudsim));
+
+        when(engine.clock()).thenReturn(4.0);
+
+        // Check it with each possible order of the list
+        for(List<VM> permutation : Collections2.permutations(threeVMs)) {
+
+            when(cloud.getAvailableVMs()).thenReturn(permutation);
+
+            Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+            a.setCloud(cloud);
+            a.provisionResources(engine);
+
+            // Check that we left the busy VM alone
+            verify(cloud, never()).terminateVM(busyVM);
+        }
+
+        // Make sure we did actually terminate some VMs!
+        verify(cloud, atLeast(1)).terminateVM(any(VM.class));
     }
 
 
