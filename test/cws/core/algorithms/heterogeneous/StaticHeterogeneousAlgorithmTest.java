@@ -25,6 +25,7 @@ import cws.core.Cloud;
 import cws.core.EnsembleManager;
 
 import cws.core.Scheduler;
+import cws.core.Provisioner;
 import cws.core.VM;
 import cws.core.VMFactory;
 import cws.core.VMListener;
@@ -51,9 +52,21 @@ import cws.core.algorithms.Plan.NoFeasiblePlan;
 
 public class StaticHeterogeneousAlgorithmTest {
 
+    Provisioner provisioner;
+    WorkflowEngine engine;
+
     @Before
     public void init() {
+        // We need cloudsim initialised to avoid problems with registering
+        // CWSSimEntity based classes.
         CloudSim.init(0, null, false);
+
+        // Need a mock provisioner to check that VMs are launched
+        provisioner = mock(Provisioner.class);
+
+        // Need this so that we can get the provisioner
+        engine = mock(WorkflowEngine.class);
+        when(engine.getProvisioner()).thenReturn(provisioner);
     }
 
     @Test
@@ -70,8 +83,7 @@ public class StaticHeterogeneousAlgorithmTest {
         algo.plan();
 
         // Check that the VM was launched
-        verify(cloudsim, times(1)).send(anyInt(), anyInt(),
-                eq(0.0), eq(WorkflowEvent.VM_LAUNCH), any());
+        verify(provisioner, times(1)).launchVMAtTime(any(VM.class), anyDouble());
 
         // And that the dag was submitted
         verify(cloudsim, times(1)).send(anyInt(), anyInt(),
@@ -107,7 +119,7 @@ public class StaticHeterogeneousAlgorithmTest {
                 .initialPlan(initialPlan)
                 .build();
 
-        algo.setWorkflowEngine(mock(WorkflowEngine.class));
+        algo.setWorkflowEngine(engine);
         algo.setCloud(mock(Cloud.class));
         algo.setEnsembleManager(mock(EnsembleManager.class));
 
@@ -115,13 +127,15 @@ public class StaticHeterogeneousAlgorithmTest {
         algo.plan();
 
         // Check that the VM would be started at the right time
-        verify(cloudsim, times(1)).send(anyInt(), anyInt(),
-                doubleThat(greaterThanOrEqualTo(startTime)),
-                eq(WorkflowEvent.VM_LAUNCH), any());
+        verify(provisioner, times(1)).launchVMAtTime(any(VM.class),
+                doubleThat(greaterThanOrEqualTo(startTime)));
 
         // Harder to check stop time, would need a full integration test
         // really... Problem is that the termination signal is sent after
         // lots of other stuff happens.
+
+        // Actually we don't necessarily stop at the stop time anyway, e.g.
+        // if a Job overruns we don't kill the VM.
     }
 
     // @Test
@@ -189,7 +203,7 @@ public class StaticHeterogeneousAlgorithmTest {
                 .addInitialVMs(asList(vmtype))
                 .build();
 
-        algo.setWorkflowEngine(mock(WorkflowEngine.class));
+        algo.setWorkflowEngine(engine);
         algo.setCloud(mock(Cloud.class));
         algo.setEnsembleManager(mock(EnsembleManager.class));
 

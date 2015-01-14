@@ -43,9 +43,6 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
 
     // Changes from StaticAlgorithm:
 
-    // We don't inherit from Provisioner. It's simpler and clearer to use a
-    // NullProvisioner instead in my opinion.
-
     // Also I've decided to remove the construction of the Cloud,
     // WorkflowEngine, and EnsembleManager from prepareEnvironment(). This
     // should really be done externally (and doing it externally should
@@ -182,7 +179,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
             }
 
             // Launch the VM at its appointed time
-            launchVM(vm, r.getStart());
+            getProvisioner().launchVMAtTime(vm, r.getStart());
 
             // We don't actually force the VM to terminate at it's
             // termination time, instead we allow the VM to be terminated
@@ -206,14 +203,6 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     }
 
 
-    private void launchVM(VM vm, double start) {
-        double now = getCloudsim().clock();
-        double delay = start - now;
-        getCloudsim().send(getWorkflowEngine().getId(), getCloud().getId(),
-                delay, WorkflowEvent.VM_LAUNCH, vm);
-    }
-
-
     // These methods handle running the actual simulation
     // ============================================================
 
@@ -232,7 +221,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
     }
 
     private void prepareEnvironment() {
-        this.getCloud().addVMListener(this);
+        getProvisioner().getCloud().addVMListener(this);
         this.getWorkflowEngine().addJobListener(this);
     }
 
@@ -317,7 +306,7 @@ public class StaticHeterogeneousAlgorithm extends HeterogeneousAlgorithm impleme
         Task task = vmqueue.peek();
         if (task == null) {
             // No more tasks
-            getCloudsim().send(getWorkflowEngine().getId(), getCloud().getId(), 0.0, WorkflowEvent.VM_TERMINATE, vm);
+            getProvisioner().terminateVM(vm);
         } else {
             // If job for task is ready
             if (readyJobs.containsKey(task)) {
