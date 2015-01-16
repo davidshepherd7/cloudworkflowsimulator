@@ -60,6 +60,9 @@ public class PowerCappedProvisioner extends Provisioner {
 
         assert (getCloudsim().clock() == 0.0);
 
+        provisionResources(engine, powerCapFunction.getValue(0.0));
+
+
         // Send provisioning requests for each time when the power cap
         // changes
         for (Map.Entry<Double, Double> powerCap : powerCapFunction.jumps()) {

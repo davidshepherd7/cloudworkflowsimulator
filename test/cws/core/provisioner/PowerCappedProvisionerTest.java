@@ -85,11 +85,14 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testInitialAllocation() {
+        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
+        powerCap.addJump(0.0, 3.1);
+
         when(cloud.getAvailableVMs()).thenReturn(ImmutableList.<VM>of());
 
-        Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
+        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionResources(engine, 3.1);
+        a.provisionInitialResources(engine);
 
         // Check that we launched the correct number of VMs: floor(3.1/1.0)
         verify(cloud, times(3)).launchVM(anyInt(), any(VM.class));
@@ -205,6 +208,10 @@ public class PowerCappedProvisionerTest {
         a.setCloud(cloud);
         a.provisionInitialResources(engine);
 
+
+        // Don't send request for initial provisioning
+        verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
+                eq(0.0), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
 
         // Send request for provisioning at 4.0
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
