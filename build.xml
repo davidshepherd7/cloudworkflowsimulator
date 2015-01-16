@@ -199,5 +199,6 @@
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
     <delete dir="${testbuild}"/>
+    <delete dir="${test.data.dir}"/>
   </target>
 </project>
