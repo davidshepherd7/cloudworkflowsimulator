@@ -93,7 +93,7 @@ public class PowerCappedProvisionerTest {
 
         Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 3.1);
 
         // Check that we launched the correct number of VMs: floor(3.1/1.0)
         verify(cloud, times(3)).launchVM(anyInt(), any(VM.class));
@@ -117,7 +117,7 @@ public class PowerCappedProvisionerTest {
 
         Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 10.1);
 
         // Check that we launched the correct number of VMs:
         // floor(10.1/1.0) - 3 = 7
@@ -140,7 +140,7 @@ public class PowerCappedProvisionerTest {
 
         Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 1.1);
 
         // Check that we terminated the correct number of VMs: 3 -
         // floor(1.1/1.0) = 2
@@ -173,7 +173,7 @@ public class PowerCappedProvisionerTest {
 
             Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
             a.setCloud(cloud);
-            a.provisionResources(engine);
+            a.provisionResources(engine, 1.1);
 
             // Check that we left the busy VM alone
             verify(cloud, never()).terminateVM(busyVM);
@@ -203,7 +203,7 @@ public class PowerCappedProvisionerTest {
 
         Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 0.5);
 
         // Check that we terminated all 3, even the busy one
         verify(cloud, times(3)).terminateVM(any(VM.class));
@@ -230,22 +230,40 @@ public class PowerCappedProvisionerTest {
         a.setCloud(cloud);
 
         when(engine.clock()).thenReturn(0.0);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 3.1);
 
         when(engine.clock()).thenReturn(4.0);
-        a.provisionResources(engine);
+        a.provisionResources(engine, 0.5);
 
         // Send request for provisioning at 4.0
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
-                eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
+                eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
 
         // Then at 12.0
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
-                eq(12.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
+                eq(12.0), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
 
         // Don't send any requests for any future provisioning
         verify(cloudsimMock, times(2)).send(anyInt(), anyInt(),
-                anyDouble(), eq(WorkflowEvent.PROVISIONING_REQUEST));
+                anyDouble(), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
     }
+
+
+    // @Test
+    // public void testFloatingPointProvisioningTimeRobustness() {
+    //     CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
+
+    //     PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
+    //     powerCap.addJump(0.0, 3.1);
+    //     powerCap.addJump(1/3, 2);
+    //     powerCap.addJump(10/3, 10);
+
+    //     Provisioner a = new PowerCappedProvisioner(cloudsimMock, powerCap, asList(vmtype));
+    //     a.setCloud(cloud);
+
+    //     provisionToCap(2);
+    //     provisionToCap(10);
+    // }
+
 
 }

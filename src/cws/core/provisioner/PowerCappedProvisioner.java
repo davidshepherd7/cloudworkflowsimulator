@@ -58,8 +58,13 @@ public class PowerCappedProvisioner extends Provisioner {
     @Override
     public void provisionResources(WorkflowEngine engine, Object eventData) {
 
+        if (eventData == null) {
+            throw new IllegalArgumentException(
+                    "Expected power cap in eventData Object.");
+        }
+
         final double currentTime = engine.clock();
-        final double powerCap = powerCapFunction.getValue(currentTime);
+        final double powerCap = (Double) eventData;
 
         // This function could be optimized a lot by simply calculating the
         // number of VMs to create/destroy outright, but I wanted to make
@@ -89,8 +94,9 @@ public class PowerCappedProvisioner extends Provisioner {
         // If it's null there are no more power changes
         if (nextPowerChange != null) {
             final double delay = nextPowerChange.getKey() - currentTime;
+            final Double power = nextPowerChange.getValue();
             getCloudsim().send(engine.getId(), engine.getId(), delay,
-                    WorkflowEvent.PROVISIONING_REQUEST);
+                    WorkflowEvent.PROVISIONING_REQUEST, power);
         }
     }
 
@@ -129,7 +135,7 @@ public class PowerCappedProvisioner extends Provisioner {
         // that all vmtypes are the same to avoid confusion in the future.
         if (availableVMTypes.size() > 1) {
             throw new RuntimeException("Multiple VMTypes given, only the first is currently used by PowerCappedProvisioner");
-            }
+        }
         final VMType vmtypeToCreate = availableVMTypes.iterator().next();
 
 
@@ -137,7 +143,7 @@ public class PowerCappedProvisioner extends Provisioner {
 
         double baseConsumption = powerConsumption(vmsActive);
         while ((baseConsumption + powerConsumptionFromType(vmsToStart)
-                + vmtypeToCreate.getPowerConsumption()) < powerCap) {
+                        + vmtypeToCreate.getPowerConsumption()) < powerCap) {
             vmsToStart.add(vmtypeToCreate);
         }
 
