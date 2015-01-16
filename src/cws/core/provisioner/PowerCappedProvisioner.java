@@ -81,8 +81,8 @@ public class PowerCappedProvisioner extends Provisioner {
     public void provisionResources(WorkflowEngine engine, Object eventData) {
 
         if (eventData == null) {
-            throw new IllegalArgumentException(
-                    "Expected power cap in eventData Object.");
+            // DAG submit provisioning request, do nothing.
+            return;
         }
 
         final double powerCap = (Double) eventData;
