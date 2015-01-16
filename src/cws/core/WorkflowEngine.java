@@ -45,6 +45,8 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
 
     private boolean provisioningRequestSend = false;
 
+    public boolean automaticallyTerminateVMsAtEnd = false;
+
     public WorkflowEngine(Provisioner provisioner, Scheduler scheduler, double budget, double deadline,
             CloudSimWrapper cloudsim) {
         super("WorkflowEngine" + (next_id++), cloudsim);
@@ -167,6 +169,12 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
                 if (dagJob.isFinished()) {
                     dags.remove(dagJob);
                     sendNow(dagJob.getOwner(), WorkflowEvent.DAG_FINISHED, dagJob);
+
+                    // If all dags are finished and the option is set then
+                    // terminate all VMs.
+                    if (automaticallyTerminateVMsAtEnd && dags.size() == 0) {
+                        getProvisioner().terminateAllVMs();
+                    }
                 }
             }
 

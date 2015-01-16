@@ -29,7 +29,6 @@ public class DynamicHeterogeneousAlgorithm extends HeterogeneousAlgorithm {
     public void simulateInternal() {
         prepareEnvironment();
         getCloudsim().startSimulation();
-        // getProvisioner().terminateAllVMs();
     }
 
     private void prepareEnvironment() {

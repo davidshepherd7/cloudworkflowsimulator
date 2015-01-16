@@ -35,6 +35,11 @@ public abstract class Provisioner extends CWSSimEntity {
         cloud.terminateVM(vm);
     }
 
+    public void terminateAllVMs() {
+        for (VM vm : cloud.getAvailableVMs()) {
+            terminateVM(vm);
+        }
+    }
 
     public abstract void provisionResources(WorkflowEngine engine,
             Object eventData);
