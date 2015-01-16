@@ -214,56 +214,31 @@ public class PowerCappedProvisionerTest {
     public void testSendNextProvisioningRequest() {
         CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
 
-        // Note that all the power cap times are powers of 2 to avoid
-        // floating point issues. Floating point issuses are in a separate
-        // test.
+         // tricky floating point value, to make sure that the provisioner
+         // is robust against floating point roundoff error (my first
+         // implementation wasn't).
+        double floatTestTime = 4.0 * Math.sqrt(2);
 
         PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
         powerCap.addJump(0.0, 3.1);
         powerCap.addJump(4.0, 0.5);
-        powerCap.addJump(16.0, 2.5);
+        powerCap.addJump(floatTestTime, 2.5);
 
 
         when(cloud.getAvailableVMs()).thenReturn(ImmutableList.<VM>of());
 
         Provisioner a = new PowerCappedProvisioner(cloudsimMock, powerCap, asList(vmtype));
         a.setCloud(cloud);
+        a.provisionInitialResources(engine);
 
-        when(engine.clock()).thenReturn(0.0);
-        a.provisionResources(engine, 3.1);
-
-        when(engine.clock()).thenReturn(4.0);
-        a.provisionResources(engine, 0.5);
 
         // Send request for provisioning at 4.0
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
-                eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
+                eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST), eq(0.5));
 
-        // Then at 12.0
+        // Then at later time
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
-                eq(12.0), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
-
-        // Don't send any requests for any future provisioning
-        verify(cloudsimMock, times(2)).send(anyInt(), anyInt(),
-                anyDouble(), eq(WorkflowEvent.PROVISIONING_REQUEST), anyObject());
+                eq(floatTestTime), eq(WorkflowEvent.PROVISIONING_REQUEST), eq(2.5));
     }
-
-
-    // @Test
-    // public void testFloatingPointProvisioningTimeRobustness() {
-    //     CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
-
-    //     PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-    //     powerCap.addJump(0.0, 3.1);
-    //     powerCap.addJump(1/3, 2);
-    //     powerCap.addJump(10/3, 10);
-
-    //     Provisioner a = new PowerCappedProvisioner(cloudsimMock, powerCap, asList(vmtype));
-    //     a.setCloud(cloud);
-
-    //     provisionToCap(2);
-    //     provisionToCap(10);
-    // }
-
 
 }

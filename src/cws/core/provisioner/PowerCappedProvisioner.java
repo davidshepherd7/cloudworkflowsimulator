@@ -56,7 +56,22 @@ public class PowerCappedProvisioner extends Provisioner {
     }
 
     @Override
-    public void provisionInitialResources(WorkflowEngine engine) {}
+    public void provisionInitialResources(WorkflowEngine engine) {
+
+        assert (getCloudsim().clock() == 0.0);
+
+        // Send provisioning requests for each time when the power cap
+        // changes
+        for (Map.Entry<Double, Double> powerCap : powerCapFunction.jumps()) {
+
+            final double delay = powerCap.getKey();
+            final Double power = powerCap.getValue();
+
+            getCloudsim().send(engine.getId(), engine.getId(), delay,
+                    WorkflowEvent.PROVISIONING_REQUEST, power);
+        }
+
+    }
 
 
     @Override
@@ -67,7 +82,6 @@ public class PowerCappedProvisioner extends Provisioner {
                     "Expected power cap in eventData Object.");
         }
 
-        final double currentTime = engine.clock();
         final double powerCap = (Double) eventData;
 
         // This function could be optimized a lot by simply calculating the
@@ -88,19 +102,6 @@ public class PowerCappedProvisioner extends Provisioner {
         for(VMType vmtype : vmsToStart) {
             VM vm = VMFactory.createVM(vmtype, getCloudsim());
             launchVM(vm);
-        }
-
-        // Submit event to trigger the next provisioning request when the
-        // power cap next changes
-        final Map.Entry<Double, Double> nextPowerChange =
-                powerCapFunction.getNextJump(currentTime);
-
-        // If it's null there are no more power changes
-        if (nextPowerChange != null) {
-            final double delay = nextPowerChange.getKey() - currentTime;
-            final Double power = nextPowerChange.getValue();
-            getCloudsim().send(engine.getId(), engine.getId(), delay,
-                    WorkflowEvent.PROVISIONING_REQUEST, power);
         }
     }
 
