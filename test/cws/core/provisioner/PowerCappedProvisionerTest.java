@@ -85,13 +85,9 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testInitialAllocation() {
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-        powerCap.addJump(0.0, 3.1);
-
-        when(engine.clock()).thenReturn(0.0);
         when(cloud.getAvailableVMs()).thenReturn(ImmutableList.<VM>of());
 
-        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+        Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
         a.setCloud(cloud);
         a.provisionResources(engine, 3.1);
 
@@ -102,20 +98,14 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testLaterAllocation() {
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-        powerCap.addJump(0.0, 3.1);
-        powerCap.addJump(5.0, 10.1);
-
-
         List<VM> threeVMs = ImmutableList.of(VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim));
 
 
-        when(engine.clock()).thenReturn(5.0);
         when(cloud.getAvailableVMs()).thenReturn(threeVMs);
 
-        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+        Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
         a.setCloud(cloud);
         a.provisionResources(engine, 10.1);
 
@@ -127,18 +117,13 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testDeallocation() {
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-        powerCap.addJump(0.0, 3.1);
-        powerCap.addJump(4.0, 1.1);
-
         List<VM> threeVMs = ImmutableList.of(VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim));
 
-        when(engine.clock()).thenReturn(4.0);
         when(cloud.getAvailableVMs()).thenReturn(threeVMs);
 
-        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+        Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
         a.setCloud(cloud);
         a.provisionResources(engine, 1.1);
 
@@ -150,11 +135,6 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testFavourDeallocatingFreeVMs() {
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-        powerCap.addJump(0.0, 3.1);
-        powerCap.addJump(4.0, 1.1);
-
-
         // Make a busy VM mock
         VM busyVM = mock(VM.class);
         when(busyVM.isFree()).thenReturn(false);
@@ -164,14 +144,13 @@ public class PowerCappedProvisionerTest {
                 VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim));
 
-        when(engine.clock()).thenReturn(4.0);
 
         // Check it with each possible order of the list
         for(List<VM> permutation : Collections2.permutations(threeVMs)) {
 
             when(cloud.getAvailableVMs()).thenReturn(permutation);
 
-            Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+            Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
             a.setCloud(cloud);
             a.provisionResources(engine, 1.1);
 
@@ -185,10 +164,6 @@ public class PowerCappedProvisionerTest {
 
     @Test
     public void testDeallocateAllVMs() {
-        PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
-        powerCap.addJump(0.0, 3.1);
-        powerCap.addJump(4.0, 0.5);
-
         // Make a busy VM mock
         VM busyVM = mock(VM.class);
         when(busyVM.isFree()).thenReturn(false);
@@ -198,10 +173,9 @@ public class PowerCappedProvisionerTest {
                 VMFactory.createVM(vmtype, cloudsim),
                 VMFactory.createVM(vmtype, cloudsim));
 
-        when(engine.clock()).thenReturn(4.0);
         when(cloud.getAvailableVMs()).thenReturn(threeVMs);
 
-        Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
+        Provisioner a = new PowerCappedProvisioner(cloudsim, null, asList(vmtype));
         a.setCloud(cloud);
         a.provisionResources(engine, 0.5);
 
@@ -211,7 +185,7 @@ public class PowerCappedProvisionerTest {
     }
 
     @Test
-    public void testSendNextProvisioningRequest() {
+    public void testSendProvisioningRequests() {
         CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
 
          // tricky floating point value, to make sure that the provisioner
