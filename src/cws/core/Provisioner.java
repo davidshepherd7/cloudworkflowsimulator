@@ -42,4 +42,6 @@ public abstract class Provisioner extends CWSSimEntity {
     public void provisionResources(WorkflowEngine engine) {
         provisionResources(engine, null);
     }
+
+    public abstract void provisionInitialResources(WorkflowEngine engine);
 }

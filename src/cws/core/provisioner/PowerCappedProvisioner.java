@@ -56,6 +56,10 @@ public class PowerCappedProvisioner extends Provisioner {
     }
 
     @Override
+    public void provisionInitialResources(WorkflowEngine engine) {}
+
+
+    @Override
     public void provisionResources(WorkflowEngine engine, Object eventData) {
 
         if (eventData == null) {

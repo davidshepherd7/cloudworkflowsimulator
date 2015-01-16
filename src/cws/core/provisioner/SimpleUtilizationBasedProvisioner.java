@@ -30,6 +30,13 @@ public class SimpleUtilizationBasedProvisioner extends HomogeneousProvisioner {
         this.maxScaling = maxScaling;
     }
 
+
+    @Override
+    public void provisionInitialResources(WorkflowEngine engine) {
+        // This method was added after SimpleUtilizationBasedProvisioner
+        // was written and so is not used.
+    }
+
     @Override
     public void provisionResources(WorkflowEngine engine, Object eventData) {
         // when called for the first time it should obtain the initial number of VMs

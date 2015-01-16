@@ -60,7 +60,9 @@ public class DynamicAlgorithm extends HomogeneousAlgorithm {
 
         printEstimations(estimatedNumVMs);
 
+        // TODO(david): should these two be merged?
         launchInitialVMs(estimatedNumVMs);
+        getProvisioner().provisionInitialResources(getWorkflowEngine());
     }
 
     private int estimateVMsNumber() {

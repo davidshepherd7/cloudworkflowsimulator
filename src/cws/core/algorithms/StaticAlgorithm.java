@@ -359,6 +359,8 @@ public abstract class StaticAlgorithm extends HomogeneousAlgorithm implements Sc
         setWorkflowEngine(engine);
         cloud.addVMListener(this);
         engine.addJobListener(this);
+
+        getProvisioner().provisionInitialResources(getWorkflowEngine());
     }
 
     /**

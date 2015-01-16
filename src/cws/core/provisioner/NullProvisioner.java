@@ -17,4 +17,7 @@ public class NullProvisioner extends Provisioner  {
 
     @Override
     public void provisionResources(WorkflowEngine engine, Object eventData) {}
+
+    @Override
+    public void provisionInitialResources(WorkflowEngine engine) {}
 }
