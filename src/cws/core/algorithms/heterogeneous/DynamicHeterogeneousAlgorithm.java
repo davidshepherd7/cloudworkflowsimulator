@@ -33,6 +33,7 @@ public class DynamicHeterogeneousAlgorithm extends HeterogeneousAlgorithm {
     }
 
     private void prepareEnvironment() {
+        setEnsembleManager(new EnsembleManager(getAllDags(), getWorkflowEngine(), getCloudsim()));
 
         getProvisioner().provisionInitialResources(getWorkflowEngine());
     }
