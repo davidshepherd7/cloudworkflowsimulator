@@ -55,7 +55,8 @@ public class PowerCappedProvisioner extends Provisioner {
         this.availableVMTypes = availableVMTypes;
     }
 
-    public void provisionResources(WorkflowEngine engine) {
+    @Override
+    public void provisionResources(WorkflowEngine engine, Object eventData) {
 
         final double currentTime = engine.clock();
         final double powerCap = powerCapFunction.getValue(currentTime);

@@ -31,7 +31,7 @@ public class SimpleUtilizationBasedProvisioner extends HomogeneousProvisioner {
     }
 
     @Override
-    public void provisionResources(WorkflowEngine engine) {
+    public void provisionResources(WorkflowEngine engine, Object eventData) {
         // when called for the first time it should obtain the initial number of VMs
         if (initialNumVMs == 0) {
             initialNumVMs = engine.getAvailableVMs().size();

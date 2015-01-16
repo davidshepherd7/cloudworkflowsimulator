@@ -15,5 +15,6 @@ public class NullProvisioner extends Provisioner  {
         super(cloudsim);
     }
 
-    public void provisionResources(WorkflowEngine engine) {}
+    @Override
+    public void provisionResources(WorkflowEngine engine, Object eventData) {}
 }
