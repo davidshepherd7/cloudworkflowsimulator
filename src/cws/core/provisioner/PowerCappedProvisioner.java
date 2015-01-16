@@ -87,7 +87,8 @@ public class PowerCappedProvisioner extends Provisioner {
 
         // If it's null there are no more power changes
         if (nextPowerChange != null) {
-            getCloudsim().send(engine.getId(), engine.getId(), nextPowerChange.getKey(),
+            final double delay = nextPowerChange.getKey() - currentTime;
+            getCloudsim().send(engine.getId(), engine.getId(), delay,
                     WorkflowEvent.PROVISIONING_REQUEST);
         }
     }

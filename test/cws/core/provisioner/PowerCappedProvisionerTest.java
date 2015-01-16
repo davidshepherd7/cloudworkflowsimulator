@@ -214,9 +214,15 @@ public class PowerCappedProvisionerTest {
     public void testSendNextProvisioningRequest() {
         CloudSimWrapper cloudsimMock = mock(CloudSimWrapper.class);
 
+        // Note that all the power cap times are powers of 2 to avoid
+        // floating point issues. Floating point issuses are in a separate
+        // test.
+
         PiecewiseConstantFunction powerCap = new PiecewiseConstantFunction(0.0);
         powerCap.addJump(0.0, 3.1);
         powerCap.addJump(4.0, 0.5);
+        powerCap.addJump(16.0, 2.5);
+
 
         when(cloud.getAvailableVMs()).thenReturn(ImmutableList.<VM>of());
 
@@ -233,9 +239,13 @@ public class PowerCappedProvisionerTest {
         verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
                 eq(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
 
+        // Then at 12.0
+        verify(cloudsimMock, times(1)).send(anyInt(), anyInt(),
+                eq(12.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
+
         // Don't send any requests for any future provisioning
-        verify(cloudsimMock, never()).send(anyInt(), anyInt(),
-                gt(4.0), eq(WorkflowEvent.PROVISIONING_REQUEST));
+        verify(cloudsimMock, times(2)).send(anyInt(), anyInt(),
+                anyDouble(), eq(WorkflowEvent.PROVISIONING_REQUEST));
     }
 
 }
