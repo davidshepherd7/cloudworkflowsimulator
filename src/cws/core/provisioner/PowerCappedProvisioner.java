@@ -60,8 +60,11 @@ public class PowerCappedProvisioner extends Provisioner {
 
         assert (getCloudsim().clock() == 0.0);
 
-        provisionResources(engine, powerCapFunction.getValue(0.0));
-
+        // Check that we have an "initial power" specified correctly
+        if (!this.powerCapFunction.jumpTimes().contains(0.0)) {
+            throw new IllegalArgumentException(
+                    "The power cap function should have a jump at time 0.0 to set the initial power.");
+        }
 
         // Send provisioning requests for each time when the power cap
         // changes

@@ -30,6 +30,7 @@ import com.google.common.collect.Collections2;
 
 import cws.core.Cloud;
 import cws.core.Provisioner;
+import cws.core.Scheduler;
 import cws.core.cloudsim.CWSSimEntity;
 import cws.core.cloudsim.CloudSimWrapper;
 import cws.core.WorkflowEngine;
@@ -92,7 +93,12 @@ public class PowerCappedProvisionerTest {
 
         Provisioner a = new PowerCappedProvisioner(cloudsim, powerCap, asList(vmtype));
         a.setCloud(cloud);
-        a.provisionInitialResources(engine);
+
+        WorkflowEngine realEngine = new WorkflowEngine(a, mock(Scheduler.class),
+                1e50, 1e50, cloudsim);
+
+        a.provisionInitialResources(realEngine);
+        cloudsim.startSimulation();
 
         // Check that we launched the correct number of VMs: floor(3.1/1.0)
         verify(cloud, times(3)).launchVM(anyInt(), any(VM.class));
