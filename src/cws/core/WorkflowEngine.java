@@ -74,8 +74,7 @@ public class WorkflowEngine extends CWSSimEntity implements VMListener {
             break;
         case WorkflowEvent.PROVISIONING_REQUEST:
             if (provisioner != null)
-                if (getAvailableVMs().size() > 0 || dags.size() > 0)
-                    provisioner.provisionResources(this, ev.getData());
+                provisioner.provisionResources(this, ev.getData());
             break;
         default:
             throw new RuntimeException("Unrecognized event: " + ev);
